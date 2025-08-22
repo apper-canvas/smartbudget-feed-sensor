@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
+import Modal from "@/components/atoms/Modal";
 import GoalCard from "@/components/organisms/GoalCard";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
@@ -170,108 +171,108 @@ const Goals = () => {
           </p>
         </div>
         
-        <Button
+<Button
           variant="secondary"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setShowForm(true)}
           className="flex items-center gap-2"
         >
-          <ApperIcon name={showForm ? "X" : "Target"} size={16} />
-          {editingGoal ? "Cancel Edit" : "New Goal"}
+          <ApperIcon name="Target" size={16} />
+          Add Goal
         </Button>
       </div>
 
-      {/* Goal Form */}
-      {showForm && (
-        <Card>
-          <div className="p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="bg-gradient-to-br from-secondary/10 to-purple-600/10 p-3 rounded-xl border border-secondary/20">
-                <ApperIcon name="Target" size={20} className="text-secondary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  {editingGoal ? "Edit Goal" : "Create New Goal"}
-                </h2>
-                <p className="text-sm text-gray-600">
-                  {editingGoal ? "Update your goal details" : "Set a new savings target"}
-                </p>
-              </div>
+{/* Goal Form Modal */}
+      <Modal
+        isOpen={showForm}
+        onClose={resetForm}
+        title={editingGoal ? "Edit Goal" : "Create New Goal"}
+        size="md"
+      >
+        <div className="p-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="bg-gradient-to-br from-secondary/10 to-purple-600/10 p-3 rounded-xl border border-secondary/20">
+              <ApperIcon name="Target" size={20} className="text-secondary" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">
+                {editingGoal ? "Update your goal details" : "Set a new savings target"}
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input
+              type="text"
+              label="Goal Name"
+              placeholder="e.g., Emergency Fund, Vacation, New Car"
+              value={formData.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              required
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                type="number"
+                label="Target Amount"
+                placeholder="0.00"
+                value={formData.targetAmount}
+                onChange={(e) => handleInputChange("targetAmount", e.target.value)}
+                min="0"
+                step="0.01"
+                required
+              />
+
+              <Input
+                type="number"
+                label="Current Amount"
+                placeholder="0.00"
+                value={formData.currentAmount}
+                onChange={(e) => handleInputChange("currentAmount", e.target.value)}
+                min="0"
+                step="0.01"
+              />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <Input
-                type="text"
-                label="Goal Name"
-                placeholder="e.g., Emergency Fund, Vacation, New Car"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                required
-              />
+            <Input
+              type="date"
+              label="Target Date"
+              value={formData.deadline}
+              onChange={(e) => handleInputChange("deadline", e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              required
+            />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  type="number"
-                  label="Target Amount"
-                  placeholder="0.00"
-                  value={formData.targetAmount}
-                  onChange={(e) => handleInputChange("targetAmount", e.target.value)}
-                  min="0"
-                  step="0.01"
-                  required
-                />
-
-                <Input
-                  type="number"
-                  label="Current Amount"
-                  placeholder="0.00"
-                  value={formData.currentAmount}
-                  onChange={(e) => handleInputChange("currentAmount", e.target.value)}
-                  min="0"
-                  step="0.01"
-                />
-              </div>
-
-              <Input
-                type="date"
-                label="Target Date"
-                value={formData.deadline}
-                onChange={(e) => handleInputChange("deadline", e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                required
-              />
-
-              <div className="flex gap-3">
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  disabled={isSubmitting}
-                  className="flex-1 flex items-center justify-center gap-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <ApperIcon name="Loader2" size={16} className="animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <ApperIcon name="Save" size={16} />
-                      {editingGoal ? "Update Goal" : "Create Goal"}
-                    </>
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={resetForm}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </div>
-        </Card>
-      )}
+            <div className="flex gap-3">
+              <Button
+                type="submit"
+                variant="secondary"
+                disabled={isSubmitting}
+                className="flex-1 flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <ApperIcon name="Loader2" size={16} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <ApperIcon name="Save" size={16} />
+                    {editingGoal ? "Update Goal" : "Create Goal"}
+                  </>
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={resetForm}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
 
       {/* Add Money Modal */}
       {showAddMoney && (
