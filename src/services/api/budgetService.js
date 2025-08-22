@@ -17,12 +17,13 @@ class BudgetService {
     return { ...budget };
   }
 
-  async create(budgetData) {
+async create(budgetData) {
     await this.delay();
     const newId = Math.max(...this.budgets.map(b => b.Id), 0) + 1;
     const newBudget = {
       Id: newId,
-      ...budgetData
+      ...budgetData,
+      createdAt: new Date().toISOString()
     };
     this.budgets.push(newBudget);
     return { ...newBudget };

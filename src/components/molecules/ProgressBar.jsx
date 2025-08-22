@@ -18,7 +18,8 @@ const ProgressBar = ({
     error: "bg-gradient-to-r from-error to-red-600"
   };
 
-  const getVariant = () => {
+const getVariant = () => {
+    if (percentage >= 100) return "error";
     if (percentage >= 90) return "error";
     if (percentage >= 75) return "warning";
     return "success";

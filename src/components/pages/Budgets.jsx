@@ -17,13 +17,15 @@ const Budgets = () => {
   const [budgets, setBudgets] = useState([]);
   const [categories, setCategories] = useState([]);
   const [transactions, setTransactions] = useState([]);
-const [loading, setLoading] = useState(true);
-const [error, setError] = useState("");
-const [showModal, setShowModal] = useState(false);
-const [categoryLimits, setCategoryLimits] = useState({});
-const [totalLimit, setTotalLimit] = useState("");
-const [isSubmitting, setIsSubmitting] = useState(false);
-  const currentMonth = format(new Date(), "yyyy-MM");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [categoryLimits, setCategoryLimits] = useState({});
+  const [totalLimit, setTotalLimit] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [budgetPeriod, setBudgetPeriod] = useState("monthly");
+const currentMonth = format(new Date(), "yyyy-MM");
+  const currentWeek = format(new Date(), "yyyy-'W'ww");
 
   useEffect(() => {
     loadData();
@@ -40,12 +42,13 @@ const [isSubmitting, setIsSubmitting] = useState(false);
         transactionService.getAll()
       ]);
 
-      setBudgets(budgetData);
+setBudgets(budgetData);
       setCategories(categoryData.filter(c => c.type === "expense"));
       setTransactions(transactionData);
 
-      // Load current month budget if exists
-      const currentBudget = budgetData.find(b => b.month === currentMonth);
+      // Load current period budget if exists
+      const currentPeriodKey = budgetPeriod === "monthly" ? currentMonth : currentWeek;
+      const currentBudget = budgetData.find(b => b.period === currentPeriodKey && b.type === budgetPeriod);
       if (currentBudget) {
         setCategoryLimits(currentBudget.categoryLimits);
         setTotalLimit(currentBudget.totalLimit.toString());
@@ -64,7 +67,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     }));
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!totalLimit || Object.keys(categoryLimits).length === 0) {
@@ -75,24 +78,24 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     try {
       setIsSubmitting(true);
       
+      const currentPeriodKey = budgetPeriod === "monthly" ? currentMonth : currentWeek;
       const budgetData = {
-        month: currentMonth,
+        period: currentPeriodKey,
+        type: budgetPeriod,
         totalLimit: parseFloat(totalLimit),
         categoryLimits
       };
-
-      const existingBudget = budgets.find(b => b.month === currentMonth);
+const existingBudget = budgets.find(b => b.period === currentPeriodKey && b.type === budgetPeriod);
       if (existingBudget) {
         await budgetService.update(existingBudget.Id, budgetData);
-        toast.success("Budget updated successfully!");
+        toast.success(`${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} budget updated successfully!`);
       } else {
         await budgetService.create(budgetData);
-        toast.success("Budget created successfully!");
-toast.success("Budget created successfully!");
-}
-
+        toast.success(`${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} budget created successfully!`);
+      }
 setShowModal(false);
-loadData();
+      loadData();
+    } catch (error) {
       toast.error("Failed to save budget");
     } finally {
       setIsSubmitting(false);
@@ -102,29 +105,63 @@ loadData();
   if (loading) return <Loading />;
   if (error) return <Error message={error} onRetry={loadData} />;
 
-  const currentBudget = budgets.find(b => b.month === currentMonth);
+const currentPeriodKey = budgetPeriod === "monthly" ? currentMonth : currentWeek;
+  const currentBudget = budgets.find(b => b.period === currentPeriodKey && b.type === budgetPeriod);
   
-  // Calculate spending by category for current month
-  const monthStart = startOfMonth(new Date());
-  const monthEnd = endOfMonth(new Date());
+  // Calculate spending by category for current period
+  const getPeriodDates = () => {
+    const now = new Date();
+    if (budgetPeriod === "monthly") {
+      return { start: startOfMonth(now), end: endOfMonth(now) };
+    } else {
+      // Weekly: Monday to Sunday
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - now.getDay() + 1);
+      monday.setHours(0, 0, 0, 0);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+      return { start: monday, end: sunday };
+    }
+  };
+
+  const { start: periodStart, end: periodEnd } = getPeriodDates();
   
-  const currentMonthExpenses = transactions.filter(t => {
+  const currentPeriodExpenses = transactions.filter(t => {
     const transactionDate = new Date(t.date);
-    return t.type === "expense" && transactionDate >= monthStart && transactionDate <= monthEnd;
+    return t.type === "expense" && transactionDate >= periodStart && transactionDate <= periodEnd;
   });
 
   const spendingByCategory = {};
-  currentMonthExpenses.forEach(t => {
+  currentPeriodExpenses.forEach(t => {
     spendingByCategory[t.category] = (spendingByCategory[t.category] || 0) + t.amount;
   });
 
-  const budgetCategories = currentBudget ? Object.keys(currentBudget.categoryLimits).map(category => ({
-    category,
-    spent: spendingByCategory[category] || 0,
-    limit: currentBudget.categoryLimits[category],
-    icon: categories.find(c => c.name === category)?.icon || "ShoppingBag",
-    color: categories.find(c => c.name === category)?.color || "#6B7280"
-  })) : [];
+  const budgetCategories = currentBudget ? Object.keys(currentBudget.categoryLimits).map(category => {
+    const spent = spendingByCategory[category] || 0;
+    const limit = currentBudget.categoryLimits[category];
+    const percentage = (spent / limit) * 100;
+    
+    // Alert logic
+    if (percentage >= 90 && percentage < 100) {
+      toast.warn(`Alert: You're at ${percentage.toFixed(0)}% of your ${category} budget limit!`, {
+        toastId: `alert-${category}-90`
+      });
+    } else if (percentage >= 100) {
+      toast.error(`Budget exceeded! You've spent ${percentage.toFixed(0)}% of your ${category} budget.`, {
+        toastId: `alert-${category}-100`
+      });
+    }
+
+    return {
+      category,
+      spent,
+      limit,
+      percentage,
+      icon: categories.find(c => c.name === category)?.icon || "ShoppingBag",
+      color: categories.find(c => c.name === category)?.color || "#6B7280"
+    };
+  }) : [];
 
   return (
     <div className="space-y-8">
@@ -132,9 +169,9 @@ loadData();
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
             Monthly Budgets
-          </h1>
+</h1>
           <p className="text-gray-600">
-            Set spending limits and track your progress for {format(new Date(), "MMMM yyyy")}
+            Set spending limits and track your progress for {budgetPeriod === "monthly" ? format(new Date(), "MMMM yyyy") : `Week ${format(new Date(), "ww, yyyy")}`}
           </p>
         </div>
 <Button
@@ -149,7 +186,7 @@ className="flex items-center gap-2"
 <Modal 
 isOpen={showModal} 
 onClose={() => setShowModal(false)}
-title={currentBudget ? "Edit Budget" : "Create Monthly Budget"}
+title={currentBudget ? "Edit Budget" : `Create ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} Budget`}
 size="lg"
 >
 <div className="p-6">
@@ -159,15 +196,40 @@ size="lg"
 </div>
 <div>
 <p className="text-sm text-gray-600">
-Set your spending limits for {format(new Date(), "MMMM yyyy")}
+Set your spending limits for {budgetPeriod === "monthly" ? format(new Date(), "MMMM yyyy") : `Week ${format(new Date(), "ww, yyyy")}`}
 </p>
+</div>
+</div>
+
+{/* Budget Period Selector */}
+<div className="mb-6">
+<label className="block text-sm font-medium text-gray-700 mb-2">Budget Period</label>
+<div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+<Button
+variant={budgetPeriod === "monthly" ? "primary" : "ghost"}
+size="sm"
+onClick={() => setBudgetPeriod("monthly")}
+className="flex-1"
+>
+<ApperIcon name="Calendar" size={16} />
+Monthly
+</Button>
+<Button
+variant={budgetPeriod === "weekly" ? "primary" : "ghost"}
+size="sm"
+onClick={() => setBudgetPeriod("weekly")}
+className="flex-1"
+>
+<ApperIcon name="CalendarDays" size={16} />
+Weekly
+</Button>
 </div>
 </div>
 
 <form onSubmit={handleSubmit} className="space-y-6">
 <Input
 type="number"
-label="Total Monthly Budget"
+label={`Total ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} Budget`}
 placeholder="0.00"
 value={totalLimit}
 onChange={(e) => setTotalLimit(e.target.value)}
@@ -235,19 +297,51 @@ Cancel
 </Modal>
 
       {budgetCategories.length === 0 ? (
-        <Empty
-          title="No budget set for this month"
-          description="Create your monthly budget to start tracking your spending limits"
-icon="PiggyBank"
-actionLabel="Create Budget"
-onAction={() => setShowModal(true)}
-/>
+<Empty
+          title={`No budget set for this ${budgetPeriod}`}
+          description={`Create your ${budgetPeriod} budget to start tracking your spending limits`}
+          icon="PiggyBank"
+          actionLabel="Create Budget"
+          onAction={() => setShowModal(true)}
+        />
       ) : (
-        <div className="space-y-6">
+<div className="space-y-6">
+          {/* Period Selector */}
+          <div className="flex justify-center">
+            <div className="flex space-x-1 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+              <Button
+                variant={budgetPeriod === "monthly" ? "primary" : "ghost"}
+                size="sm"
+                onClick={() => setBudgetPeriod("monthly")}
+                className="flex items-center gap-2"
+              >
+                <ApperIcon name="Calendar" size={16} />
+                Monthly View
+              </Button>
+              <Button
+                variant={budgetPeriod === "weekly" ? "primary" : "ghost"}
+                size="sm"
+                onClick={() => setBudgetPeriod("weekly")}
+                className="flex items-center gap-2"
+              >
+                <ApperIcon name="CalendarDays" size={16} />
+                Weekly View
+              </Button>
+            </div>
+          </div>
+
           {/* Budget Overview */}
           <Card>
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Budget Overview</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Budget Overview</h2>
+                {budgetCategories.some(cat => cat.percentage >= 90) && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-warning/10 border border-warning/20 rounded-full">
+                    <ApperIcon name="AlertTriangle" size={16} className="text-warning" />
+                    <span className="text-sm text-warning font-medium">Budget Alerts</span>
+                  </div>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-blue-600/10 rounded-xl border border-primary/20">
                   <p className="text-sm text-primary font-medium">Total Budget</p>
@@ -274,13 +368,15 @@ onAction={() => setShowModal(true)}
           {/* Category Budgets */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {budgetCategories.map(category => (
-              <BudgetCard
+<BudgetCard
                 key={category.category}
                 category={category.category}
                 spent={category.spent}
                 limit={category.limit}
                 icon={category.icon}
                 color={category.color}
+                period={budgetPeriod}
+                showAlert={category.percentage >= 75}
               />
             ))}
           </div>
