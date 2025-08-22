@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import StatCard from "@/components/molecules/StatCard";
-import BudgetCard from "@/components/organisms/BudgetCard";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
-import ApperIcon from "@/components/ui/ApperIcon";
 import { transactionService } from "@/services/api/transactionService";
 import { budgetService } from "@/services/api/budgetService";
 import { goalService } from "@/services/api/goalService";
 import { categoryService } from "@/services/api/categoryService";
 import { endOfMonth, format, startOfMonth } from "date-fns";
+import ApperIcon from "@/components/ApperIcon";
+import Transactions from "@/components/pages/Transactions";
+import Goals from "@/components/pages/Goals";
+import BudgetCard from "@/components/organisms/BudgetCard";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
+import StatCard from "@/components/molecules/StatCard";
 
 const Dashboard = () => {
   const [data, setData] = useState({

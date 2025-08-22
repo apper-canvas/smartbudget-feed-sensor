@@ -2,7 +2,7 @@ import React from "react";
 import Button from "@/components/atoms/Button";
 import ApperIcon from "@/components/ApperIcon";
 
-const Empty = ({ 
+const Empty = ({
   title = "No data found", 
   description = "Get started by adding your first item",
   actionLabel = "Add New",
