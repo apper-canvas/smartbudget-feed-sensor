@@ -1,5 +1,4 @@
 import transactionData from "@/services/mockData/transactions.json";
-
 class TransactionService {
   constructor() {
     this.transactions = [...transactionData];
@@ -49,10 +48,12 @@ class TransactionService {
     this.transactions.splice(index, 1);
     return true;
   }
+async getAllForExport() {
+    // Return all data without delay for backup operations
+    return [...this.transactions];
+  }
 
   delay() {
     return new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 200));
   }
 }
-
-export const transactionService = new TransactionService();

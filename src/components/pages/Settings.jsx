@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { backupService } from "@/services/api/backupService";
 import { userService } from "@/services/api/userService";
 import ApperIcon from "@/components/ApperIcon";
+import Error from "@/components/ui/Error";
+import Loading from "@/components/ui/Loading";
 import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
 import Input from "@/components/atoms/Input";
 import Select from "@/components/atoms/Select";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
 
 const Settings = () => {
   const [user, setUser] = useState(null);
@@ -21,33 +22,52 @@ const Settings = () => {
     currency: "USD",
     timeZone: "America/New_York"
   });
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportFormat, setExportFormat] = useState('');
 
   const currencies = [
     { value: "USD", label: "USD - US Dollar" },
     { value: "EUR", label: "EUR - Euro" },
     { value: "GBP", label: "GBP - British Pound" },
     { value: "CAD", label: "CAD - Canadian Dollar" },
-    { value: "AUD", label: "AUD - Australian Dollar" },
-    { value: "JPY", label: "JPY - Japanese Yen" },
-    { value: "CHF", label: "CHF - Swiss Franc" },
-    { value: "CNY", label: "CNY - Chinese Yuan" }
   ];
 
   const timeZones = [
-    { value: "America/New_York", label: "Eastern Time (UTC-5/-4)" },
-    { value: "America/Chicago", label: "Central Time (UTC-6/-5)" },
-    { value: "America/Denver", label: "Mountain Time (UTC-7/-6)" },
-    { value: "America/Los_Angeles", label: "Pacific Time (UTC-8/-7)" },
-    { value: "Europe/London", label: "London Time (UTC+0/+1)" },
-    { value: "Europe/Paris", label: "Central European Time (UTC+1/+2)" },
-    { value: "Asia/Tokyo", label: "Japan Time (UTC+9)" },
-    { value: "Asia/Shanghai", label: "China Time (UTC+8)" },
-    { value: "Australia/Sydney", label: "Australian Eastern Time (UTC+10/+11)" }
+    { value: "America/New_York", label: "Eastern Time (ET)" },
+    { value: "America/Chicago", label: "Central Time (CT)" },
+    { value: "America/Denver", label: "Mountain Time (MT)" },
+    { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
+    { value: "Europe/London", label: "Greenwich Mean Time (GMT)" },
+    { value: "Europe/Paris", label: "Central European Time (CET)" },
+    { value: "Asia/Tokyo", label: "Japan Standard Time (JST)" },
   ];
 
   useEffect(() => {
     loadUserData();
   }, []);
+
+
+  const handleExportData = async (format) => {
+    try {
+      setIsExporting(true);
+      setExportFormat(format);
+      toast.info(`Preparing ${format.toUpperCase()} export...`);
+
+      let result;
+      if (format === 'json') {
+        result = await backupService.exportToJSON();
+      } else if (format === 'csv') {
+        result = await backupService.exportToCSV();
+      }
+
+      toast.success(`Successfully exported data as ${result.filename}`);
+    } catch (error) {
+      toast.error(`Failed to export data: ${error.message}`);
+    } finally {
+      setIsExporting(false);
+      setExportFormat('');
+    }
+  };
 
   const loadUserData = async () => {
     try {
@@ -72,7 +92,7 @@ const Settings = () => {
     }
   };
 
-  const handleInputChange = (field, value) => {
+const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -101,7 +121,7 @@ const Settings = () => {
         return;
       }
 
-      const updatedUser = await userService.update(user.Id, formData);
+const updatedUser = await userService.update(user.id, formData);
       setUser(updatedUser);
       toast.success("Settings saved successfully!");
       
@@ -196,7 +216,7 @@ const Settings = () => {
                 label="Preferred Currency"
                 value={formData.currency}
                 onChange={(e) => handleInputChange("currency", e.target.value)}
-                options={currencies}
+options={currencies}
               />
 
               <Select
@@ -207,17 +227,15 @@ const Settings = () => {
               />
             </div>
           </Card>
-        </div>
 
-        {/* Actions & Summary */}
-        <div className="space-y-6">
+          {/* Action Buttons */}
           <Card className="p-6">
             <div className="flex items-center space-x-3 mb-6">
               <div className="bg-gradient-to-br from-success/10 to-green-600/10 p-3 rounded-xl border border-success/20">
-                <ApperIcon name="Check" size={24} className="text-success" />
+                <ApperIcon name="Save" size={24} className="text-success" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Actions</h3>
+                <h2 className="text-xl font-bold text-gray-900">Save Changes</h2>
                 <p className="text-gray-600 text-sm">Save or reset your changes</p>
               </div>
             </div>
@@ -253,7 +271,10 @@ const Settings = () => {
               </Button>
             </div>
           </Card>
+        </div>
 
+        {/* Sidebar */}
+        <div className="space-y-6">
           {/* Current Settings Summary */}
           <Card className="p-6">
             <div className="flex items-center space-x-3 mb-4">
@@ -307,8 +328,116 @@ const Settings = () => {
           </Card>
         </div>
       </div>
+
+      {/* Data Backup & Export */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="bg-gradient-to-br from-primary/10 to-blue-600/10 p-3 rounded-xl border border-primary/20">
+              <ApperIcon name="Download" size={20} className="text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Data Backup & Export</h2>
+              <p className="text-sm text-gray-600">
+                Download your financial data for backup or migration purposes
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* JSON Export */}
+            <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl border border-gray-200">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <ApperIcon name="FileText" size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">JSON Format</h3>
+                  <p className="text-sm text-gray-600">Complete data with structure</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-700 mb-4">
+                Export all your data in JSON format, perfect for backup and data migration. 
+                Includes transactions, budgets, goals, accounts, and categories.
+              </p>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => handleExportData('json')}
+                disabled={isExporting}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                {isExporting && exportFormat === 'json' ? (
+                  <>
+                    <ApperIcon name="Loader2" size={16} className="animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <ApperIcon name="Download" size={16} />
+                    Export JSON
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* CSV Export */}
+            <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl border border-gray-200">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="bg-green-100 p-2 rounded-lg">
+                  <ApperIcon name="Table" size={20} className="text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">CSV Format</h3>
+                  <p className="text-sm text-gray-600">Spreadsheet compatible</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-700 mb-4">
+                Export your data in CSV format for analysis in Excel, Google Sheets, or other 
+                spreadsheet applications. Separate sheets for each data type.
+              </p>
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => handleExportData('csv')}
+                disabled={isExporting}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                {isExporting && exportFormat === 'csv' ? (
+                  <>
+                    <ApperIcon name="Loader2" size={16} className="animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <ApperIcon name="Download" size={16} />
+                    Export CSV
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+            <div className="flex items-start space-x-3">
+              <div className="bg-blue-100 p-1 rounded-full mt-0.5">
+                <ApperIcon name="Info" size={16} className="text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-medium text-blue-900 mb-1">Export Information</h4>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Files are downloaded directly to your device</li>
+                  <li>• JSON format preserves all data relationships and metadata</li>
+                  <li>• CSV format is optimized for spreadsheet analysis</li>
+                  <li>• Export includes timestamp for easy identification</li>
+                  <li>• No data is sent to external servers during export</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };
-
 export default Settings;
