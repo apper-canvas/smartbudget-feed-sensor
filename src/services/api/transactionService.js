@@ -53,7 +53,9 @@ async getAllForExport() {
     return [...this.transactions];
   }
 
-  delay() {
+delay() {
     return new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 200));
   }
 }
+
+export const transactionService = new TransactionService();
