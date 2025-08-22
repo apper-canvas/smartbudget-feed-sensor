@@ -15,8 +15,8 @@ const variants = {
     primary: "bg-gradient-to-r from-primary to-blue-600 text-white shadow-md hover:shadow-lg hover:brightness-110",
     secondary: "bg-gradient-to-r from-secondary to-purple-600 text-white shadow-md hover:shadow-lg hover:brightness-110",
     success: "bg-gradient-to-r from-success to-green-600 text-white shadow-md hover:shadow-lg hover:brightness-110",
-    outline: "border-2 border-primary text-primary bg-white hover:bg-primary hover:text-white",
-    ghost: "text-gray-700 hover:bg-gray-100",
+    outline: "border-2 border-primary text-primary bg-white dark:bg-gray-800 dark:text-primary hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white",
+    ghost: "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
     danger: "bg-gradient-to-r from-error to-red-600 text-white shadow-md hover:shadow-lg hover:brightness-110"
   };
 

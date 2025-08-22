@@ -14,7 +14,7 @@ const menuItems = [
     { path: "/settings", icon: "Settings", label: "Settings" }
   ];
 
-  return (
+return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
@@ -25,7 +25,7 @@ const menuItems = [
       )}
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:bg-white lg:border-r lg:border-gray-200 lg:shadow-sm">
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:bg-white dark:lg:bg-gray-800 lg:border-r lg:border-gray-200 dark:lg:border-gray-700 lg:shadow-sm transition-colors duration-200">
         <div className="flex items-center px-6 py-8">
           <div className="flex items-center space-x-3">
             <div className="bg-gradient-to-br from-primary to-blue-600 p-2 rounded-xl">
@@ -48,7 +48,7 @@ const menuItems = [
                   "hover:bg-gradient-to-r hover:from-primary/10 hover:to-blue-600/10 hover:scale-[1.02]",
                   isActive
                     ? "bg-gradient-to-r from-primary/10 to-blue-600/10 text-primary border border-primary/20"
-                    : "text-gray-700 hover:text-primary"
+                    : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
                 )
               }
             >
@@ -61,7 +61,7 @@ const menuItems = [
 
       {/* Mobile Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-xl shadow-2xl transform transition-transform duration-300 lg:hidden",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl shadow-2xl transform transition-all duration-300 lg:hidden",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between px-6 py-8">
@@ -75,9 +75,9 @@ const menuItems = [
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <ApperIcon name="X" size={20} className="text-gray-500" />
+            <ApperIcon name="X" size={20} className="text-gray-500 dark:text-gray-400" />
           </button>
         </div>
         
@@ -93,7 +93,7 @@ const menuItems = [
                   "hover:bg-gradient-to-r hover:from-primary/10 hover:to-blue-600/10 hover:scale-[1.02]",
                   isActive
                     ? "bg-gradient-to-r from-primary/10 to-blue-600/10 text-primary border border-primary/20"
-                    : "text-gray-700 hover:text-primary"
+                    : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
                 )
               }
             >
