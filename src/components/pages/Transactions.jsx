@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import TransactionList from "@/components/organisms/TransactionList";
+import TransactionForm from "@/components/organisms/TransactionForm";
+import Modal from "@/components/atoms/Modal";
+import Button from "@/components/atoms/Button";
+import ApperIcon from "@/components/ApperIcon";
 
 const Transactions = () => {
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editTransaction, setEditTransaction] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 // Listen for global transaction additions
   useEffect(() => {
     const handleGlobalTransactionAdded = () => {
@@ -32,22 +36,48 @@ const Transactions = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  return (
+return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-          Transactions
-        </h1>
-        <p className="text-gray-600">
-          Track your income and expenses to stay on top of your finances
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+            Transactions
+          </h1>
+          <p className="text-gray-600">
+            Track your income and expenses to stay on top of your finances
+          </p>
+        </div>
+        <Button
+          variant="primary"
+          size="md"
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <ApperIcon name="Plus" size={16} />
+          <span className="hidden sm:inline">Add Transaction</span>
+        </Button>
       </div>
-
-
-      <TransactionList 
+<TransactionList 
         refresh={refreshTrigger}
         onEdit={handleEdit}
       />
+
+      {/* Add Transaction Modal */}
+      <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
+        <TransactionForm
+          onTransactionAdded={handleTransactionAdded}
+          onEditComplete={() => setIsAddModalOpen(false)}
+        />
+      </Modal>
+
+      {/* Edit Transaction Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <TransactionForm
+          editTransaction={editTransaction}
+          onTransactionAdded={handleTransactionAdded}
+          onEditComplete={handleEditComplete}
+        />
+      </Modal>
     </div>
   );
 };

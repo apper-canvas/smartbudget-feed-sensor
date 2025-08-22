@@ -25,19 +25,7 @@ const Header = ({ onMenuClick, onAddTransaction, title = "Dashboard", subtitle }
                 <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
               )}
             </div>
-          </div>
-
-<div className="flex items-center space-x-4">
-            <Button
-              variant="primary"
-              size="md"
-              onClick={onAddTransaction}
-              className="flex items-center gap-2"
-            >
-              <ApperIcon name="Plus" size={16} />
-              <span className="hidden sm:inline">Add Transaction</span>
-            </Button>
-          </div>
+</div>
         </div>
       </div>
     </header>
