@@ -1,0 +1,57 @@
+[
+  {
+    "Id": 1,
+    "name": "Chase Checking",
+    "type": "checking",
+    "balance": 2450.75,
+    "accountNumber": "****1234",
+    "isLinked": true,
+    "bankName": "Chase Bank",
+    "color": "#2563EB",
+    "icon": "Landmark"
+  },
+  {
+    "Id": 2,
+    "name": "Savings Account",
+    "type": "savings",
+    "balance": 15600.00,
+    "accountNumber": "****5678",
+    "isLinked": true,
+    "bankName": "Bank of America",
+    "color": "#10B981",
+    "icon": "PiggyBank"
+  },
+  {
+    "Id": 3,
+    "name": "Credit Card",
+    "type": "credit",
+    "balance": -1250.30,
+    "accountNumber": "****9876",
+    "isLinked": true,
+    "bankName": "Capital One",
+    "color": "#EF4444",
+    "icon": "CreditCard"
+  },
+  {
+    "Id": 4,
+    "name": "Cash Wallet",
+    "type": "cash",
+    "balance": 180.00,
+    "accountNumber": null,
+    "isLinked": false,
+    "bankName": null,
+    "color": "#F59E0B",
+    "icon": "Wallet"
+  },
+  {
+    "Id": 5,
+    "name": "Investment Account",
+    "type": "investment",
+    "balance": 8750.25,
+    "accountNumber": "****4321",
+    "isLinked": true,
+    "bankName": "Fidelity",
+    "color": "#7C3AED",
+    "icon": "TrendingUp"
+  }
+]
