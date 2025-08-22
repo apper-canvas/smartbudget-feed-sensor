@@ -1,0 +1,17 @@
+[
+  {
+    "Id": 1,
+    "month": "2024-01",
+    "totalLimit": 2500.00,
+    "categoryLimits": {
+      "Food & Dining": 400.00,
+      "Transportation": 200.00,
+      "Shopping": 300.00,
+      "Entertainment": 150.00,
+      "Bills & Utilities": 500.00,
+      "Healthcare": 200.00,
+      "Education": 100.00,
+      "Travel": 300.00
+    }
+  }
+]
