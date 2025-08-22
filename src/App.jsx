@@ -2,20 +2,20 @@ import "@/index.css";
 import React, { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import Accounts from "@/components/pages/Accounts";
 import budgetsData from "@/services/mockData/budgets.json";
 import transactionsData from "@/services/mockData/transactions.json";
 import goalsData from "@/services/mockData/goals.json";
 import categoriesData from "@/services/mockData/categories.json";
-import Goals from "@/components/pages/Goals";
 import Transactions from "@/components/pages/Transactions";
+import Budgets from "@/components/pages/Budgets";
+import Accounts from "@/components/pages/Accounts";
+import Goals from "@/components/pages/Goals";
 import Dashboard from "@/components/pages/Dashboard";
 import Charts from "@/components/pages/Charts";
-import Budgets from "@/components/pages/Budgets";
-import Modal from "@/components/atoms/Modal";
 import Sidebar from "@/components/organisms/Sidebar";
-import TransactionForm from "@/components/organisms/TransactionForm";
 import Header from "@/components/organisms/Header";
+import TransactionForm from "@/components/organisms/TransactionForm";
+import Modal from "@/components/atoms/Modal";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -53,13 +53,22 @@ function App() {
           position="top-right"
           autoClose={3000}
           hideProgressBar={false}
-          newestOnTop={false}
+          newestOnTop={true}
           closeOnClick
           rtl={false}
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          style={{ zIndex: 9999 }}
+          theme="light"
+          toastClassName="custom-toast"
+          bodyClassName="custom-toast-body"
+          progressClassName="custom-progress"
+          style={{ 
+            zIndex: 99999,
+            position: 'fixed',
+            top: '1rem',
+            right: '1rem'
+          }}
         />
 
         {/* Global Transaction Modal */}
@@ -69,11 +78,11 @@ function App() {
           size="lg"
         >
 <TransactionForm 
-            onTransactionAdded={() => {
+onTransactionAdded={() => {
               setIsTransactionModalOpen(false);
               // Trigger refresh for transaction list if on transactions page
               if (typeof window !== 'undefined' && window.CustomEvent) {
-                window.dispatchEvent(new CustomEvent('transactionAdded'));
+                window.dispatchEvent(new window.CustomEvent('transactionAdded'));
               }
             }}
             editTransaction={null}
