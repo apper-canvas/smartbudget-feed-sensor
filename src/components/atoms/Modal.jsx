@@ -53,10 +53,10 @@ const Modal = React.forwardRef(({
       {/* Modal Content */}
       <div
         ref={ref}
-        className={cn(
+className={cn(
           "relative w-full bg-white rounded-xl shadow-2xl border border-gray-200",
           "transform transition-all duration-200 scale-100 opacity-100",
-          "max-h-[90vh] overflow-y-auto",
+          "max-h-[95vh]",
           sizes[size],
           className
         )}
