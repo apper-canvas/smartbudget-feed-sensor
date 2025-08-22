@@ -8,7 +8,7 @@ import Card from "@/components/atoms/Card";
 import Input from "@/components/atoms/Input";
 import Select from "@/components/atoms/Select";
 
-const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }) => {
+const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete, onCancel }) => {
   const [formData, setFormData] = useState({
     amount: "",
     type: "expense",
@@ -112,9 +112,9 @@ const handleCancel = () => {
         date: new Date().toISOString().split('T')[0],
         notes: ""
       });
-      // Close modal if in modal context
-      if (onTransactionAdded) {
-        onTransactionAdded();
+      // Close modal using dedicated cancel handler
+      if (onCancel) {
+        onCancel();
       }
     }
   };

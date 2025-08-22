@@ -62,11 +62,11 @@ return (
         onEdit={handleEdit}
       />
 
-      {/* Add Transaction Modal */}
+{/* Add Transaction Modal */}
       <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
         <TransactionForm
           onTransactionAdded={handleTransactionAdded}
-          onEditComplete={() => setIsAddModalOpen(false)}
+          onCancel={() => setIsAddModalOpen(false)}
         />
       </Modal>
 
