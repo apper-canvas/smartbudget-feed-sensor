@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
+import Modal from "@/components/atoms/Modal";
 import BudgetCard from "@/components/organisms/BudgetCard";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
@@ -12,18 +13,16 @@ import { transactionService } from "@/services/api/transactionService";
 import { categoryService } from "@/services/api/categoryService";
 import ApperIcon from "@/components/ApperIcon";
 import { format, startOfMonth, endOfMonth } from "date-fns";
-
 const Budgets = () => {
   const [budgets, setBudgets] = useState([]);
   const [categories, setCategories] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [categoryLimits, setCategoryLimits] = useState({});
-  const [totalLimit, setTotalLimit] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState("");
+const [showModal, setShowModal] = useState(false);
+const [categoryLimits, setCategoryLimits] = useState({});
+const [totalLimit, setTotalLimit] = useState("");
+const [isSubmitting, setIsSubmitting] = useState(false);
   const currentMonth = format(new Date(), "yyyy-MM");
 
   useEffect(() => {
@@ -89,11 +88,11 @@ const Budgets = () => {
       } else {
         await budgetService.create(budgetData);
         toast.success("Budget created successfully!");
-      }
+toast.success("Budget created successfully!");
+}
 
-      setShowForm(false);
-      loadData();
-    } catch (error) {
+setShowModal(false);
+loadData();
       toast.error("Failed to save budget");
     } finally {
       setIsSubmitting(false);
@@ -138,113 +137,111 @@ const Budgets = () => {
             Set spending limits and track your progress for {format(new Date(), "MMMM yyyy")}
           </p>
         </div>
-        
-        <Button
-          variant="primary"
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2"
-        >
-          <ApperIcon name={showForm ? "X" : "Plus"} size={16} />
-          {currentBudget ? "Edit Budget" : "Create Budget"}
-        </Button>
-      </div>
+<Button
+variant="primary"
+onClick={() => setShowModal(true)}
+className="flex items-center gap-2"
+>
+<ApperIcon name="Plus" size={16} />
+{currentBudget ? "Edit Budget" : "Add Budget"}
+</Button>
+</div>
+<Modal 
+isOpen={showModal} 
+onClose={() => setShowModal(false)}
+title={currentBudget ? "Edit Budget" : "Create Monthly Budget"}
+size="lg"
+>
+<div className="p-6">
+<div className="flex items-center space-x-3 mb-6">
+<div className="bg-gradient-to-br from-primary/10 to-blue-600/10 p-3 rounded-xl border border-primary/20">
+<ApperIcon name="PiggyBank" size={20} className="text-primary" />
+</div>
+<div>
+<p className="text-sm text-gray-600">
+Set your spending limits for {format(new Date(), "MMMM yyyy")}
+</p>
+</div>
+</div>
 
-      {showForm && (
-        <Card>
-          <div className="p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="bg-gradient-to-br from-primary/10 to-blue-600/10 p-3 rounded-xl border border-primary/20">
-                <ApperIcon name="PiggyBank" size={20} className="text-primary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  {currentBudget ? "Edit Budget" : "Create Monthly Budget"}
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Set your spending limits for {format(new Date(), "MMMM yyyy")}
-                </p>
-              </div>
-            </div>
+<form onSubmit={handleSubmit} className="space-y-6">
+<Input
+type="number"
+label="Total Monthly Budget"
+placeholder="0.00"
+value={totalLimit}
+onChange={(e) => setTotalLimit(e.target.value)}
+min="0"
+step="0.01"
+required
+/>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <Input
-                type="number"
-                label="Total Monthly Budget"
-                placeholder="0.00"
-                value={totalLimit}
-                onChange={(e) => setTotalLimit(e.target.value)}
-                min="0"
-                step="0.01"
-                required
-              />
+<div>
+<h3 className="text-lg font-semibold text-gray-900 mb-4">Category Limits</h3>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+{categories.map(category => (
+<div key={category.Id} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+<div className="p-2 rounded-lg" style={{ backgroundColor: `${category.color}20` }}>
+<ApperIcon name={category.icon} size={20} style={{ color: category.color }} />
+</div>
+<div className="flex-1">
+<label className="block text-sm font-medium text-gray-700 mb-1">
+{category.name}
+</label>
+<Input
+type="number"
+placeholder="0.00"
+value={categoryLimits[category.name] || ""}
+onChange={(e) => handleCategoryLimitChange(category.name, e.target.value)}
+min="0"
+step="0.01"
+/>
+</div>
+</div>
+))}
+</div>
+</div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Limits</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {categories.map(category => (
-                    <div key={category.Id} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
-                      <div className="p-2 rounded-lg" style={{ backgroundColor: `${category.color}20` }}>
-                        <ApperIcon name={category.icon} size={20} style={{ color: category.color }} />
-                      </div>
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {category.name}
-                        </label>
-                        <Input
-                          type="number"
-                          placeholder="0.00"
-                          value={categoryLimits[category.name] || ""}
-                          onChange={(e) => handleCategoryLimitChange(category.name, e.target.value)}
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
-                  className="flex-1 flex items-center justify-center gap-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <ApperIcon name="Loader2" size={16} className="animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <ApperIcon name="Save" size={16} />
-                      {currentBudget ? "Update Budget" : "Create Budget"}
-                    </>
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowForm(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </div>
-        </Card>
-      )}
+<div className="flex gap-3">
+<Button
+type="submit"
+variant="primary"
+disabled={isSubmitting}
+className="flex-1 flex items-center justify-center gap-2"
+>
+{isSubmitting ? (
+<>
+<ApperIcon name="Loader2" size={16} className="animate-spin" />
+Saving...
+</>
+) : (
+<>
+<ApperIcon name="Save" size={16} />
+{currentBudget ? "Update Budget" : "Create Budget"}
+</>
+)}
+</Button>
+<Button
+type="button"
+variant="ghost"
+onClick={() => setShowModal(false)}
+disabled={isSubmitting}
+>
+Cancel
+</Button>
+</div>
+</form>
+</div>
+</Modal>
 
       {budgetCategories.length === 0 ? (
         <Empty
           title="No budget set for this month"
           description="Create your monthly budget to start tracking your spending limits"
-          icon="PiggyBank"
-          actionLabel="Create Budget"
-          onAction={() => setShowForm(true)}
-        />
+icon="PiggyBank"
+actionLabel="Create Budget"
+onAction={() => setShowModal(true)}
+/>
       ) : (
         <div className="space-y-6">
           {/* Budget Overview */}
