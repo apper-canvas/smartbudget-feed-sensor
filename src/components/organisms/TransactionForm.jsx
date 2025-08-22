@@ -222,12 +222,12 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
               )}
             </Button>
 
-            <Button
+<Button
               type="button"
-              variant="ghost"
+              variant="outline"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-gray-50 border-gray-300 text-gray-700 hover:border-gray-400 transition-colors"
             >
               <ApperIcon name="X" size={16} />
               Cancel
