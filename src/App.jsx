@@ -12,6 +12,7 @@ import Accounts from "@/components/pages/Accounts";
 import Goals from "@/components/pages/Goals";
 import Dashboard from "@/components/pages/Dashboard";
 import Charts from "@/components/pages/Charts";
+import Settings from "@/components/pages/Settings";
 import Sidebar from "@/components/organisms/Sidebar";
 import Header from "@/components/organisms/Header";
 import TransactionForm from "@/components/organisms/TransactionForm";
@@ -41,8 +42,9 @@ function App() {
                   <Route path="/transactions" element={<Transactions />} />
                   <Route path="/budgets" element={<Budgets />} />
                   <Route path="/goals" element={<Goals />} />
-                  <Route path="/charts" element={<Charts />} />
+<Route path="/charts" element={<Charts />} />
                   <Route path="/accounts" element={<Accounts />} />
+                  <Route path="/settings" element={<Settings />} />
                 </Routes>
               </div>
             </main>
