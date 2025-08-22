@@ -84,12 +84,12 @@ const Goals = () => {
         deadline: new Date(formData.deadline).toISOString()
       };
 
-      if (editingGoal) {
+if (editingGoal) {
         await goalService.update(editingGoal.Id, goalData);
-        toast.success("Goal updated successfully!");
+        toast.success(`🎯 Goal "${goalData.name}" updated successfully!`);
       } else {
         await goalService.create(goalData);
-        toast.success("Goal created successfully!");
+        toast.success(`🎯 New goal "${goalData.name}" created! Target: $${goalData.targetAmount.toFixed(2)}`);
       }
 
       resetForm();
@@ -101,13 +101,14 @@ const Goals = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this goal?")) return;
+const handleDelete = async (id) => {
+    const goalToDelete = goals.find(g => g.Id === id);
+    if (!confirm(`Are you sure you want to delete the goal "${goalToDelete?.name}"?`)) return;
 
     try {
       await goalService.delete(id);
       setGoals(prev => prev.filter(g => g.Id !== id));
-      toast.success("Goal deleted successfully!");
+      toast.success(`🗑️ Goal "${goalToDelete?.name}" deleted successfully!`);
     } catch (error) {
       toast.error("Failed to delete goal");
     }
@@ -119,7 +120,7 @@ const Goals = () => {
     setShowAddMoney(true);
   };
 
-  const handleAddMoneySubmit = async (e) => {
+const handleAddMoneySubmit = async (e) => {
     e.preventDefault();
     
     const amount = parseFloat(addAmount);
@@ -128,11 +129,14 @@ const Goals = () => {
       return;
     }
 
+    const newTotal = selectedGoal.currentAmount + amount;
+    const newPercentage = (newTotal / selectedGoal.targetAmount) * 100;
+
     try {
       setIsSubmitting(true);
       const updatedGoal = {
         ...selectedGoal,
-        currentAmount: selectedGoal.currentAmount + amount
+        currentAmount: newTotal
       };
 
       await goalService.update(selectedGoal.Id, updatedGoal);
@@ -144,7 +148,16 @@ const Goals = () => {
       setShowAddMoney(false);
       setSelectedGoal(null);
       setAddAmount("");
-      toast.success(`Added $${amount.toFixed(2)} to ${selectedGoal.name}!`);
+      
+      // Success notification with progress indication
+      if (newPercentage >= 100) {
+        toast.success(`🎉 Goal completed! Added $${amount.toFixed(2)} to ${selectedGoal.name}!`, {
+          autoClose: 5000
+        });
+      } else {
+        const remainingAmount = selectedGoal.targetAmount - newTotal;
+        toast.success(`💰 Added $${amount.toFixed(2)} to ${selectedGoal.name}! $${remainingAmount.toFixed(2)} left to go!`);
+      }
     } catch (error) {
       toast.error("Failed to add money");
     } finally {

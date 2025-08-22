@@ -48,7 +48,7 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
     }
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.amount || !formData.category) {
@@ -56,21 +56,33 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
       return;
     }
 
+    // Validation notifications
+    const amount = parseFloat(formData.amount);
+    if (amount <= 0) {
+      toast.error("Amount must be greater than zero");
+      return;
+    }
+
+    if (amount > 999999) {
+      toast.warn("Large transaction amount detected - please verify");
+    }
+
     try {
       setIsSubmitting(true);
       const transactionData = {
         ...formData,
-        amount: parseFloat(formData.amount),
+        amount: amount,
         date: new Date(formData.date).toISOString()
       };
 
       if (editTransaction) {
         await transactionService.update(editTransaction.Id, transactionData);
-        toast.success("Transaction updated successfully!");
+        toast.success(`💰 ${formData.type === 'income' ? 'Income' : 'Expense'} updated successfully!`);
         onEditComplete();
       } else {
         await transactionService.create(transactionData);
-        toast.success("Transaction added successfully!");
+        const icon = formData.type === 'income' ? '📈' : '💸';
+        toast.success(`${icon} ${formData.type === 'income' ? 'Income' : 'Expense'} of $${amount.toFixed(2)} added!`);
         setFormData({
           amount: "",
           type: "expense",
@@ -83,7 +95,7 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
       onTransactionAdded();
     } catch (error) {
       toast.error("Failed to save transaction");
-} finally {
+    } finally {
       setIsSubmitting(false);
     }
   };

@@ -43,24 +43,39 @@ const AccountForm = ({ account, onAccountAdded, onAccountUpdated, onCancel }) =>
     { value: "investment", label: "Investment", icon: "TrendingUp", color: "#7C3AED" }
   ];
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    // Validation notifications
+    const balance = parseFloat(formData.balance) || 0;
+    if (formData.type === 'credit' && balance > 0) {
+      toast.info("💳 Note: Credit card balances are typically negative (what you owe)");
+    }
+    
+    if (balance < -50000) {
+      toast.warn("⚠️ Large debt amount detected - please verify this is correct");
+    }
 
     try {
       const selectedType = accountTypes.find(t => t.value === formData.type);
       const accountData = {
         ...formData,
-        balance: parseFloat(formData.balance) || 0,
+        balance: balance,
         color: selectedType.color,
         icon: selectedType.icon
       };
 
       if (account) {
         await accountService.update(account.Id, accountData);
+        toast.success(`✅ ${formData.name} account updated successfully!`);
         onAccountUpdated();
       } else {
         await accountService.create(accountData);
+        const typeIcon = selectedType.icon === 'PiggyBank' ? '🐷' : 
+                        selectedType.icon === 'CreditCard' ? '💳' : 
+                        selectedType.icon === 'Wallet' ? '💰' : '🏦';
+        toast.success(`${typeIcon} ${formData.name} account added successfully!`);
         onAccountAdded();
       }
     } catch (err) {
@@ -70,9 +85,18 @@ const AccountForm = ({ account, onAccountAdded, onAccountUpdated, onCancel }) =>
     }
   };
 
-  const handleLinkAccount = async (e) => {
+const handleLinkAccount = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    // Validation for bank linking
+    if (linkData.routingNumber.length !== 9) {
+      toast.error("Routing number must be exactly 9 digits");
+      setLoading(false);
+      return;
+    }
+
+    toast.info("🔄 Connecting to your bank...", { autoClose: 2000 });
 
     try {
       await accountService.linkAccount(
@@ -80,10 +104,10 @@ const AccountForm = ({ account, onAccountAdded, onAccountUpdated, onCancel }) =>
         linkData.accountNumber,
         linkData.routingNumber
       );
-      toast.success("Account linked successfully!");
+      toast.success("🔗 Bank account linked successfully!");
       onAccountAdded();
     } catch (err) {
-      toast.error("Failed to link account");
+      toast.error("❌ Failed to link account - please check your details");
     } finally {
       setLoading(false);
     }

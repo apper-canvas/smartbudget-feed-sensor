@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { accountService } from "@/services/api/accountService";
 import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import Modal from "@/components/atoms/Modal";
-import SearchBar from "@/components/molecules/SearchBar";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
 import AccountForm from "@/components/organisms/AccountForm";
 import AccountCard from "@/components/organisms/AccountCard";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
+import SearchBar from "@/components/molecules/SearchBar";
+import Button from "@/components/atoms/Button";
+import Modal from "@/components/atoms/Modal";
 
 const Accounts = () => {
   const [accounts, setAccounts] = useState([]);
@@ -59,18 +59,18 @@ const Accounts = () => {
     }
   };
 
-  const handleAccountAdded = () => {
+const handleAccountAdded = () => {
     setIsFormModalOpen(false);
     setEditAccount(null);
     loadAccounts();
-    toast.success("Account added successfully!");
+    // Toast handled in AccountForm component
   };
 
   const handleAccountUpdated = () => {
     setIsFormModalOpen(false);
     setEditAccount(null);
     loadAccounts();
-    toast.success("Account updated successfully!");
+    // Toast handled in AccountForm component
   };
 
   const handleEdit = (account) => {
@@ -78,15 +78,16 @@ const Accounts = () => {
     setIsFormModalOpen(true);
   };
 
-  const handleDelete = async (accountId) => {
+const handleDelete = async (accountId) => {
     if (!window.confirm("Are you sure you want to delete this account?")) return;
 
     try {
+      const accountToDelete = accounts.find(a => a.Id === accountId);
       await accountService.delete(accountId);
       setAccounts(prev => prev.filter(a => a.Id !== accountId));
-      toast.success("Account deleted successfully!");
+      toast.success(`🗑️ ${accountToDelete?.name || 'Account'} deleted successfully!`);
     } catch (err) {
-      toast.error("Failed to delete account");
+      toast.error("❌ Failed to delete account");
     }
   };
 

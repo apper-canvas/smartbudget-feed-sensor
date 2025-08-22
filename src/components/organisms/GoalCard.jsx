@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { toast } from "react-toastify";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import ProgressRing from "@/components/molecules/ProgressRing";
@@ -9,6 +10,41 @@ const GoalCard = ({ goal, onAddMoney, onEdit, onDelete }) => {
   const percentage = (goal.currentAmount / goal.targetAmount) * 100;
   const remaining = goal.targetAmount - goal.currentAmount;
   const daysLeft = differenceInDays(new Date(goal.deadline), new Date());
+  const previousPercentageRef = useRef(percentage);
+
+  // Check for milestone achievements
+  useEffect(() => {
+    const prevPercentage = previousPercentageRef.current;
+    
+    // Milestone notifications
+    if (prevPercentage < 25 && percentage >= 25) {
+      toast.success(`🎯 Quarter way there! ${goal.name} is 25% complete!`, {
+        toastId: `milestone-${goal.Id}-25`
+      });
+    } else if (prevPercentage < 50 && percentage >= 50) {
+      toast.success(`🔥 Halfway milestone reached for ${goal.name}!`, {
+        toastId: `milestone-${goal.Id}-50`
+      });
+    } else if (prevPercentage < 75 && percentage >= 75) {
+      toast.success(`⭐ Almost there! ${goal.name} is 75% complete!`, {
+        toastId: `milestone-${goal.Id}-75`
+      });
+    } else if (prevPercentage < 100 && percentage >= 100) {
+      toast.success(`🎉 Congratulations! You've achieved your goal: ${goal.name}!`, {
+        toastId: `milestone-${goal.Id}-100`,
+        autoClose: 5000
+      });
+    }
+
+    // Deadline warnings
+    if (daysLeft <= 7 && daysLeft > 0 && percentage < 90) {
+      toast.warn(`⏰ Only ${daysLeft} days left for ${goal.name}!`, {
+        toastId: `deadline-warning-${goal.Id}`
+      });
+    }
+
+    previousPercentageRef.current = percentage;
+  }, [percentage, goal.name, goal.Id, daysLeft]);
   
   const getStatusColor = () => {
     if (percentage >= 100) return "text-success";

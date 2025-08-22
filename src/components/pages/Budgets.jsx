@@ -88,10 +88,10 @@ const handleSubmit = async (e) => {
 const existingBudget = budgets.find(b => b.period === currentPeriodKey && b.type === budgetPeriod);
       if (existingBudget) {
         await budgetService.update(existingBudget.Id, budgetData);
-        toast.success(`${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} budget updated successfully!`);
+        toast.success(`📊 ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} budget updated! Total: $${parseFloat(totalLimit).toFixed(2)}`);
       } else {
         await budgetService.create(budgetData);
-        toast.success(`${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} budget created successfully!`);
+        toast.success(`📊 ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} budget created! Stay within $${parseFloat(totalLimit).toFixed(2)}`);
       }
 setShowModal(false);
       loadData();
@@ -142,17 +142,23 @@ const currentPeriodKey = budgetPeriod === "monthly" ? currentMonth : currentWeek
     const limit = currentBudget.categoryLimits[category];
     const percentage = (spent / limit) * 100;
     
-    // Alert logic
+// Enhanced alert logic with more specific messaging
     if (percentage >= 90 && percentage < 100) {
-      toast.warn(`Alert: You're at ${percentage.toFixed(0)}% of your ${category} budget limit!`, {
-        toastId: `alert-${category}-90`
+      toast.warn(`⚠️ Budget Alert: You've spent ${percentage.toFixed(0)}% of your ${category} budget ($${spent.toFixed(2)} of $${limit.toFixed(2)})`, {
+        toastId: `alert-${category}-90`,
+        autoClose: 5000
       });
-    } else if (percentage >= 100) {
-      toast.error(`Budget exceeded! You've spent ${percentage.toFixed(0)}% of your ${category} budget.`, {
-        toastId: `alert-${category}-100`
+    } else if (percentage >= 100 && percentage < 125) {
+      toast.error(`🚨 Budget Exceeded: ${category} is at ${percentage.toFixed(0)}% ($${(spent - limit).toFixed(2)} over budget)`, {
+        toastId: `alert-${category}-100`,
+        autoClose: 7000
+      });
+    } else if (percentage >= 125) {
+      toast.error(`🚨 Serious Overspend: ${category} is ${percentage.toFixed(0)}% over budget! Consider adjusting spending.`, {
+        toastId: `alert-${category}-125`,
+        autoClose: 10000
       });
     }
-
     return {
       category,
       spent,
