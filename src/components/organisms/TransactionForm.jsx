@@ -88,7 +88,7 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
     }
   };
 
-  const handleCancel = () => {
+const handleCancel = () => {
     if (editTransaction) {
       onEditComplete();
     } else {
@@ -100,6 +100,10 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
         date: new Date().toISOString().split('T')[0],
         notes: ""
       });
+      // Close modal if in modal context
+      if (onTransactionAdded) {
+        onTransactionAdded();
+      }
     }
   };
 
