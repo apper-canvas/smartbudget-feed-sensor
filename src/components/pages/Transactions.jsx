@@ -4,19 +4,22 @@ import TransactionList from "@/components/organisms/TransactionList";
 
 const Transactions = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [editTransaction, setEditTransaction] = useState(null);
+const [editTransaction, setEditTransaction] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleTransactionAdded = () => {
+const handleTransactionAdded = () => {
     setRefreshTrigger(prev => prev + 1);
+    setIsModalOpen(false);
   };
 
   const handleEdit = (transaction) => {
     setEditTransaction(transaction);
-    document.getElementById('add-transaction')?.scrollIntoView({ behavior: 'smooth' });
+    setIsModalOpen(true);
   };
 
   const handleEditComplete = () => {
     setEditTransaction(null);
+    setIsModalOpen(false);
     setRefreshTrigger(prev => prev + 1);
   };
 
