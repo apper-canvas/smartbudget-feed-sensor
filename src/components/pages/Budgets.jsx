@@ -20,16 +20,84 @@ const Budgets = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [categoryLimits, setCategoryLimits] = useState({});
+const [categoryLimits, setCategoryLimits] = useState({});
   const [totalLimit, setTotalLimit] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [budgetPeriod, setBudgetPeriod] = useState("monthly");
+  const [alertsShown, setAlertsShown] = useState(new Set());
 const currentMonth = format(new Date(), "yyyy-MM");
   const currentWeek = format(new Date(), "yyyy-'W'ww");
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Budget alerts effect - separate from render to prevent setState during render
+  useEffect(() => {
+    if (budgets.length === 0 || transactions.length === 0) return;
+
+    const currentPeriodKey = budgetPeriod === "monthly" ? currentMonth : currentWeek;
+    const currentBudget = budgets.find(b => b.period === currentPeriodKey && b.type === budgetPeriod);
+    
+    if (!currentBudget) return;
+
+    const getPeriodDates = () => {
+      const now = new Date();
+      if (budgetPeriod === "monthly") {
+        return { start: startOfMonth(now), end: endOfMonth(now) };
+      } else {
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - now.getDay() + 1);
+        monday.setHours(0, 0, 0, 0);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+        return { start: monday, end: sunday };
+      }
+    };
+
+    const { start: periodStart, end: periodEnd } = getPeriodDates();
+    
+    const currentPeriodExpenses = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return t.type === "expense" && transactionDate >= periodStart && transactionDate <= periodEnd;
+    });
+
+    const spendingByCategory = {};
+    currentPeriodExpenses.forEach(t => {
+      spendingByCategory[t.category] = (spendingByCategory[t.category] || 0) + t.amount;
+    });
+
+    // Check for budget alerts
+    Object.keys(currentBudget.categoryLimits).forEach(category => {
+      const spent = spendingByCategory[category] || 0;
+      const limit = currentBudget.categoryLimits[category];
+      const percentage = (spent / limit) * 100;
+      
+      const alertKey = `${currentPeriodKey}-${category}`;
+      
+      // Enhanced alert logic with more specific messaging
+      if (percentage >= 90 && percentage < 100 && !alertsShown.has(`${alertKey}-90`)) {
+        toast.warn(`⚠️ Budget Alert: You've spent ${percentage.toFixed(0)}% of your ${category} budget ($${spent.toFixed(2)} of $${limit.toFixed(2)})`, {
+          toastId: `alert-${category}-90`,
+          autoClose: 5000
+        });
+        setAlertsShown(prev => new Set([...prev, `${alertKey}-90`]));
+      } else if (percentage >= 100 && percentage < 125 && !alertsShown.has(`${alertKey}-100`)) {
+        toast.error(`🚨 Budget Exceeded: ${category} is at ${percentage.toFixed(0)}% ($${(spent - limit).toFixed(2)} over budget)`, {
+          toastId: `alert-${category}-100`,
+          autoClose: 7000
+        });
+        setAlertsShown(prev => new Set([...prev, `${alertKey}-100`]));
+      } else if (percentage >= 125 && !alertsShown.has(`${alertKey}-125`)) {
+        toast.error(`🚨 Serious Overspend: ${category} is ${percentage.toFixed(0)}% over budget! Consider adjusting spending.`, {
+          toastId: `alert-${category}-125`,
+          autoClose: 10000
+        });
+        setAlertsShown(prev => new Set([...prev, `${alertKey}-125`]));
+      }
+    });
+  }, [budgets, transactions, budgetPeriod, currentMonth, currentWeek]);
 
   const loadData = async () => {
     try {
@@ -137,28 +205,11 @@ const currentPeriodKey = budgetPeriod === "monthly" ? currentMonth : currentWeek
     spendingByCategory[t.category] = (spendingByCategory[t.category] || 0) + t.amount;
   });
 
-  const budgetCategories = currentBudget ? Object.keys(currentBudget.categoryLimits).map(category => {
+const budgetCategories = currentBudget ? Object.keys(currentBudget.categoryLimits).map(category => {
     const spent = spendingByCategory[category] || 0;
     const limit = currentBudget.categoryLimits[category];
     const percentage = (spent / limit) * 100;
     
-// Enhanced alert logic with more specific messaging
-    if (percentage >= 90 && percentage < 100) {
-      toast.warn(`⚠️ Budget Alert: You've spent ${percentage.toFixed(0)}% of your ${category} budget ($${spent.toFixed(2)} of $${limit.toFixed(2)})`, {
-        toastId: `alert-${category}-90`,
-        autoClose: 5000
-      });
-    } else if (percentage >= 100 && percentage < 125) {
-      toast.error(`🚨 Budget Exceeded: ${category} is at ${percentage.toFixed(0)}% ($${(spent - limit).toFixed(2)} over budget)`, {
-        toastId: `alert-${category}-100`,
-        autoClose: 7000
-      });
-    } else if (percentage >= 125) {
-      toast.error(`🚨 Serious Overspend: ${category} is ${percentage.toFixed(0)}% over budget! Consider adjusting spending.`, {
-        toastId: `alert-${category}-125`,
-        autoClose: 10000
-      });
-    }
     return {
       category,
       spent,
