@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Card from "@/components/atoms/Card";
-import Button from "@/components/atoms/Button";
-import Input from "@/components/atoms/Input";
-import Select from "@/components/atoms/Select";
 import { transactionService } from "@/services/api/transactionService";
 import { categoryService } from "@/services/api/categoryService";
 import ApperIcon from "@/components/ApperIcon";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
+import Input from "@/components/atoms/Input";
+import Select from "@/components/atoms/Select";
 
 const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }) => {
   const [formData, setFormData] = useState({
@@ -83,8 +83,23 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
       onTransactionAdded();
     } catch (error) {
       toast.error("Failed to save transaction");
-    } finally {
+} finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (editTransaction) {
+      onEditComplete();
+    } else {
+      // Reset form to initial state
+      setFormData({
+        amount: "",
+        type: "expense",
+        category: "",
+        date: new Date().toISOString().split('T')[0],
+        notes: ""
+      });
     }
   };
 
@@ -93,7 +108,6 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
   };
 
   const filteredCategories = categories.filter(cat => cat.type === formData.type);
-
   return (
     <Card>
       <div className="p-6">
@@ -188,7 +202,7 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
             onChange={(e) => handleInputChange("notes", e.target.value)}
           />
 
-          <div className="flex gap-3 pt-4">
+<div className="flex gap-3 pt-4">
             <Button
               type="submit"
               variant="primary"
@@ -208,16 +222,16 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete }
               )}
             </Button>
 
-            {editTransaction && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onEditComplete}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+              className="flex items-center gap-2"
+            >
+              <ApperIcon name="X" size={16} />
+              Cancel
+            </Button>
           </div>
         </form>
       </div>
