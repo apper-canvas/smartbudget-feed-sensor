@@ -1,19 +1,19 @@
+import "@/index.css";
 import React, { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import "@/index.css";
 import budgetsData from "@/services/mockData/budgets.json";
 import transactionsData from "@/services/mockData/transactions.json";
 import goalsData from "@/services/mockData/goals.json";
 import categoriesData from "@/services/mockData/categories.json";
-import Goals from "@/components/pages/Goals";
 import Transactions from "@/components/pages/Transactions";
+import Budgets from "@/components/pages/Budgets";
+import Goals from "@/components/pages/Goals";
 import Dashboard from "@/components/pages/Dashboard";
 import Charts from "@/components/pages/Charts";
-import Budgets from "@/components/pages/Budgets";
 import Sidebar from "@/components/organisms/Sidebar";
-import TransactionForm from "@/components/organisms/TransactionForm";
 import Header from "@/components/organisms/Header";
+import TransactionForm from "@/components/organisms/TransactionForm";
 import Modal from "@/components/atoms/Modal";
 
 function App() {
@@ -28,11 +28,11 @@ function App() {
             onClose={() => setSidebarOpen(false)}
           />
           
-          <div className="flex-1 flex flex-col overflow-hidden">
+<div className="flex-1 flex flex-col overflow-hidden">
             <Header 
               onMenuClick={() => setSidebarOpen(true)}
+              onAddTransaction={() => setIsTransactionModalOpen(true)}
             />
-            
             <main className="flex-1 overflow-y-auto">
               <div className="px-4 lg:px-8 py-8">
                 <Routes>
@@ -66,10 +66,13 @@ function App() {
           onClose={() => setIsTransactionModalOpen(false)}
           size="lg"
         >
-          <TransactionForm 
+<TransactionForm 
             onTransactionAdded={() => {
               setIsTransactionModalOpen(false);
-              // You can add additional logic here if needed
+              // Trigger refresh for transaction list if on transactions page
+              if (typeof window !== 'undefined' && window.CustomEvent) {
+                window.dispatchEvent(new CustomEvent('transactionAdded'));
+              }
             }}
             editTransaction={null}
             onEditComplete={() => setIsTransactionModalOpen(false)}

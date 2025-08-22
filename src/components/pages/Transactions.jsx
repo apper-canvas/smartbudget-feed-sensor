@@ -1,13 +1,22 @@
-import React, { useState } from "react";
-import TransactionForm from "@/components/organisms/TransactionForm";
+import React, { useState, useEffect } from "react";
 import TransactionList from "@/components/organisms/TransactionList";
 
 const Transactions = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-const [editTransaction, setEditTransaction] = useState(null);
+  const [editTransaction, setEditTransaction] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-const handleTransactionAdded = () => {
+// Listen for global transaction additions
+  useEffect(() => {
+    const handleGlobalTransactionAdded = () => {
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('transactionAdded', handleGlobalTransactionAdded);
+    return () => window.removeEventListener('transactionAdded', handleGlobalTransactionAdded);
+  }, []);
+
+  const handleTransactionAdded = () => {
     setRefreshTrigger(prev => prev + 1);
     setIsModalOpen(false);
   };
@@ -34,13 +43,6 @@ const handleTransactionAdded = () => {
         </p>
       </div>
 
-      <div id="add-transaction">
-        <TransactionForm 
-          onTransactionAdded={handleTransactionAdded}
-          editTransaction={editTransaction}
-          onEditComplete={handleEditComplete}
-        />
-      </div>
 
       <TransactionList 
         refresh={refreshTrigger}
