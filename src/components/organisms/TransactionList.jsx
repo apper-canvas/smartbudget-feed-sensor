@@ -13,7 +13,7 @@ import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
 import Loading from "@/components/ui/Loading";
 
-const TransactionList = ({ refresh, onEdit, initialFilter = "all" }) => {
+const TransactionList = ({ refresh, onEdit, initialFilter = "all", categoryFilter, showFilterTabs = true }) => {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,11 +72,12 @@ const loadData = async () => {
     return category?.color || "#6B7280";
   };
 
-  const filteredTransactions = transactions.filter(transaction => {
+const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (transaction.notes && transaction.notes.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesFilter = filterType === "all" || transaction.type === filterType;
-    return matchesSearch && matchesFilter;
+    const matchesCategory = !categoryFilter || categoryFilter.includes(transaction.category);
+    return matchesSearch && matchesFilter && matchesCategory;
   });
 
   if (loading) return <Loading />;
@@ -95,19 +96,21 @@ const loadData = async () => {
                 placeholder="Search transactions..."
               />
             </div>
-<div className="flex gap-2">
-              {["all", "income", "expense", "recurring"].map(type => (
-                <Button
-                  key={type}
-                  variant={filterType === type ? "primary" : "ghost"}
-                  size="sm"
-                  onClick={() => setFilterType(type)}
-                  className="capitalize"
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
+{showFilterTabs && (
+              <div className="flex gap-2">
+                {["all", "income", "expense", "recurring"].map(type => (
+                  <Button
+                    key={type}
+                    variant={filterType === type ? "primary" : "ghost"}
+                    size="sm"
+                    onClick={() => setFilterType(type)}
+                    className="capitalize"
+                  >
+                    {type}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </Card>
