@@ -8,7 +8,7 @@ class TransactionService {
     this.tableName = 'transaction_c';
   }
 
-  async getAll() {
+async getAll() {
     try {
       const params = {
         fields: [
@@ -49,6 +49,91 @@ class TransactionService {
       }));
     } catch (error) {
       console.error("Error fetching transactions:", error);
+      throw error;
+    }
+  }
+
+  async getRecurringTransactions() {
+    try {
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "amount_c" } },
+          { field: { Name: "type_c" } },
+          { field: { Name: "date_c" } },
+          { field: { Name: "notes_c" } },
+          { field: { Name: "created_at_c" } },
+          { 
+            field: { Name: "category_c" },
+            referenceField: { field: { Name: "Name" } }
+          }
+        ],
+        whereGroups: [
+          {
+            operator: "OR",
+            subGroups: [
+              {
+                conditions: [
+                  {
+                    fieldName: "category_c",
+                    operator: "Contains",
+                    subOperator: "",
+                    values: ["Transportation"]
+                  }
+                ],
+                operator: "OR"
+              },
+              {
+                conditions: [
+                  {
+                    fieldName: "category_c",
+                    operator: "Contains",
+                    subOperator: "",
+                    values: ["Bills"]
+                  }
+                ],
+                operator: "OR"
+              },
+              {
+                conditions: [
+                  {
+                    fieldName: "category_c",
+                    operator: "Contains",
+                    subOperator: "",
+                    values: ["Utilities"]
+                  }
+                ],
+                operator: "OR"
+              }
+            ]
+          }
+        ],
+        orderBy: [
+          {
+            fieldName: "date_c",
+            sorttype: "DESC"
+          }
+        ]
+      };
+
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+
+      return response.data.map(transaction => ({
+        Id: transaction.Id,
+        amount: transaction.amount_c || 0,
+        type: transaction.type_c,
+        category: transaction.category_c?.Name || transaction.category_c || '',
+        date: transaction.date_c,
+        notes: transaction.notes_c,
+        createdAt: transaction.created_at_c
+      }));
+    } catch (error) {
+      console.error("Error fetching recurring transactions:", error);
       throw error;
     }
   }

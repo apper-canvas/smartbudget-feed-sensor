@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { transactionService } from "@/services/api/transactionService";
+import { categoryService } from "@/services/api/categoryService";
+import { format } from "date-fns";
+import ApperIcon from "@/components/ApperIcon";
+import SearchBar from "@/components/molecules/SearchBar";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import Badge from "@/components/atoms/Badge";
-import Loading from "@/components/ui/Loading";
+import Transactions from "@/components/pages/Transactions";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
-import SearchBar from "@/components/molecules/SearchBar";
-import { transactionService } from "@/services/api/transactionService";
-import { categoryService } from "@/services/api/categoryService";
-import ApperIcon from "@/components/ApperIcon";
-import { format } from "date-fns";
+import Loading from "@/components/ui/Loading";
 
 const TransactionList = ({ refresh, onEdit }) => {
   const [transactions, setTransactions] = useState([]);
@@ -18,18 +19,22 @@ const TransactionList = ({ refresh, onEdit }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all");
+const [filterType, setFilterType] = useState("all");
 
-  useEffect(() => {
+useEffect(() => {
     loadData();
-  }, [refresh]);
+  }, [refresh, filterType]);
 
-  const loadData = async () => {
+const loadData = async () => {
     try {
       setLoading(true);
       setError("");
+      const transactionPromise = filterType === "recurring" 
+        ? transactionService.getRecurringTransactions()
+        : transactionService.getAll();
+      
       const [transactionData, categoryData] = await Promise.all([
-        transactionService.getAll(),
+        transactionPromise,
         categoryService.getAll()
       ]);
       setTransactions(transactionData.sort((a, b) => new Date(b.date) - new Date(a.date)));
@@ -86,9 +91,8 @@ const TransactionList = ({ refresh, onEdit }) => {
                 placeholder="Search transactions..."
               />
             </div>
-            
-            <div className="flex gap-2">
-              {["all", "income", "expense"].map(type => (
+<div className="flex gap-2">
+              {["all", "income", "expense", "recurring"].map(type => (
                 <Button
                   key={type}
                   variant={filterType === type ? "primary" : "ghost"}
