@@ -246,7 +246,7 @@ onClose={() => setShowModal(false)}
 title={currentBudget ? "Edit Budget" : `Create ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} Budget`}
 size="lg"
 >
-<div className="flex flex-col flex-1 min-h-0">
+<div className="flex flex-col h-full">
   {/* Fixed Header Section */}
   <div className="p-6 pb-0 flex-shrink-0">
     <div className="flex items-center space-x-3 mb-6">
@@ -286,8 +286,8 @@ size="lg"
     </div>
   </div>
 
-{/* Scrollable Content Section */}
-  <div className="px-6 flex-1 overflow-y-auto max-h-[calc(95vh-200px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
+  {/* Scrollable Content Section */}
+<div className="px-6 flex-1 overflow-y-auto max-h-[60vh] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
     <form id="budget-form" onSubmit={handleSubmit} className="space-y-6">
       <Input
         type="number"
@@ -327,7 +327,6 @@ size="lg"
       </div>
     </form>
   </div>
-
   {/* Fixed Footer Section */}
   <div className="p-6 pt-4 border-t border-gray-200 flex-shrink-0">
     <div className="flex gap-3">
