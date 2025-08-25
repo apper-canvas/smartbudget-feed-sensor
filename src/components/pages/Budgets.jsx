@@ -286,8 +286,8 @@ size="lg"
     </div>
   </div>
 
-  {/* Scrollable Content Section */}
-  <div className="px-6 flex-1 overflow-y-auto">
+{/* Scrollable Content Section */}
+  <div className="px-6 flex-1 overflow-y-auto max-h-[calc(95vh-200px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
     <form id="budget-form" onSubmit={handleSubmit} className="space-y-6">
       <Input
         type="number"
