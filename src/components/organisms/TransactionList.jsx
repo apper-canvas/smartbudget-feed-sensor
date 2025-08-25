@@ -118,11 +118,12 @@ const filteredTransactions = transactions.filter(transaction => {
         <div className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <SearchBar
+<SearchBar
                 value={searchTerm}
                 onChange={setSearchTerm}
                 placeholder="Search transactions..."
-</div>
+              />
+            </div>
             {showFilterTabs && (
               <div className="flex gap-2 flex-wrap">
                 {["all", "income", "expense", "recurring"].map(type => (
