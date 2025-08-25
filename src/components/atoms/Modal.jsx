@@ -66,8 +66,8 @@ className={cn(
         onClick={(e) => e.stopPropagation()}
         {...props}
       >
-        {title && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+{title && (
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
             <h2 id="modal-title" className="text-xl font-bold text-gray-900">
               {title}
             </h2>
@@ -78,7 +78,9 @@ className={cn(
             )}
           </div>
         )}
-        {children}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {children}
+        </div>
       </div>
     </div>
   );

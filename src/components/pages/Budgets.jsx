@@ -246,110 +246,117 @@ onClose={() => setShowModal(false)}
 title={currentBudget ? "Edit Budget" : `Create ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} Budget`}
 size="lg"
 >
-<div className="p-6">
-<div className="flex items-center space-x-3 mb-6">
-<div className="bg-gradient-to-br from-primary/10 to-blue-600/10 p-3 rounded-xl border border-primary/20">
-<ApperIcon name="PiggyBank" size={20} className="text-primary" />
-</div>
-<div>
-<p className="text-sm text-gray-600">
-Set your spending limits for {budgetPeriod === "monthly" ? format(new Date(), "MMMM yyyy") : `Week ${format(new Date(), "ww, yyyy")}`}
-</p>
-</div>
-</div>
+<div className="flex flex-col flex-1 overflow-hidden">
+  <div className="p-6 pb-0 flex-shrink-0">
+    <div className="flex items-center space-x-3 mb-6">
+      <div className="bg-gradient-to-br from-primary/10 to-blue-600/10 p-3 rounded-xl border border-primary/20">
+        <ApperIcon name="PiggyBank" size={20} className="text-primary" />
+      </div>
+      <div>
+        <p className="text-sm text-gray-600">
+          Set your spending limits for {budgetPeriod === "monthly" ? format(new Date(), "MMMM yyyy") : `Week ${format(new Date(), "ww, yyyy")}`}
+        </p>
+      </div>
+    </div>
 
-{/* Budget Period Selector */}
-<div className="mb-6">
-<label className="block text-sm font-medium text-gray-700 mb-2">Budget Period</label>
-<div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-<Button
-variant={budgetPeriod === "monthly" ? "primary" : "ghost"}
-size="sm"
-onClick={() => setBudgetPeriod("monthly")}
-className="flex-1"
->
-<ApperIcon name="Calendar" size={16} />
-Monthly
-</Button>
-<Button
-variant={budgetPeriod === "weekly" ? "primary" : "ghost"}
-size="sm"
-onClick={() => setBudgetPeriod("weekly")}
-className="flex-1"
->
-<ApperIcon name="CalendarDays" size={16} />
-Weekly
-</Button>
-</div>
-</div>
+    {/* Budget Period Selector */}
+    <div className="mb-6">
+      <label className="block text-sm font-medium text-gray-700 mb-2">Budget Period</label>
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <Button
+          variant={budgetPeriod === "monthly" ? "primary" : "ghost"}
+          size="sm"
+          onClick={() => setBudgetPeriod("monthly")}
+          className="flex-1"
+        >
+          <ApperIcon name="Calendar" size={16} />
+          Monthly
+        </Button>
+        <Button
+          variant={budgetPeriod === "weekly" ? "primary" : "ghost"}
+          size="sm"
+          onClick={() => setBudgetPeriod("weekly")}
+          className="flex-1"
+        >
+          <ApperIcon name="CalendarDays" size={16} />
+          Weekly
+        </Button>
+      </div>
+    </div>
+  </div>
 
-<form onSubmit={handleSubmit} className="space-y-6">
-<Input
-type="number"
-label={`Total ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} Budget`}
-placeholder="0.00"
-value={totalLimit}
-onChange={(e) => setTotalLimit(e.target.value)}
-min="0"
-step="0.01"
-required
-/>
+  <div className="px-6 flex-1 overflow-y-auto">
+    <form id="budget-form" onSubmit={handleSubmit} className="space-y-6">
+      <Input
+        type="number"
+        label={`Total ${budgetPeriod.charAt(0).toUpperCase() + budgetPeriod.slice(1)} Budget`}
+        placeholder="0.00"
+        value={totalLimit}
+        onChange={(e) => setTotalLimit(e.target.value)}
+        min="0"
+        step="0.01"
+        required
+      />
 
-<div>
-<h3 className="text-lg font-semibold text-gray-900 mb-4">Category Limits</h3>
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-{categories.map(category => (
-<div key={category.Id} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
-<div className="p-2 rounded-lg" style={{ backgroundColor: `${category.color}20` }}>
-<ApperIcon name={category.icon} size={20} style={{ color: category.color }} />
-</div>
-<div className="flex-1">
-<label className="block text-sm font-medium text-gray-700 mb-1">
-{category.name}
-</label>
-<Input
-type="number"
-placeholder="0.00"
-value={categoryLimits[category.name] || ""}
-onChange={(e) => handleCategoryLimitChange(category.name, e.target.value)}
-min="0"
-step="0.01"
-/>
-</div>
-</div>
-))}
-</div>
-</div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Limits</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6">
+          {categories.map(category => (
+            <div key={category.Id} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+              <div className="p-2 rounded-lg" style={{ backgroundColor: `${category.color}20` }}>
+                <ApperIcon name={category.icon} size={20} style={{ color: category.color }} />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {category.name}
+                </label>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={categoryLimits[category.name] || ""}
+                  onChange={(e) => handleCategoryLimitChange(category.name, e.target.value)}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </form>
+  </div>
 
-<div className="flex gap-3">
-<Button
-type="submit"
-variant="primary"
-disabled={isSubmitting}
-className="flex-1 flex items-center justify-center gap-2"
->
-{isSubmitting ? (
-<>
-<ApperIcon name="Loader2" size={16} className="animate-spin" />
-Saving...
-</>
-) : (
-<>
-<ApperIcon name="Save" size={16} />
-{currentBudget ? "Update Budget" : "Create Budget"}
-</>
-)}
-</Button>
-<Button
-type="button"
-variant="ghost"
-onClick={() => setShowModal(false)}
-disabled={isSubmitting}
->
-Cancel
-</Button>
-</div>
-</form>
+  <div className="p-6 pt-4 border-t border-gray-200 flex-shrink-0">
+    <div className="flex gap-3">
+      <Button
+        type="submit"
+        form="budget-form"
+        variant="primary"
+        disabled={isSubmitting}
+        className="flex-1 flex items-center justify-center gap-2"
+      >
+        {isSubmitting ? (
+          <>
+            <ApperIcon name="Loader2" size={16} className="animate-spin" />
+            Saving...
+          </>
+        ) : (
+          <>
+            <ApperIcon name="Save" size={16} />
+            {currentBudget ? "Update Budget" : "Create Budget"}
+          </>
+        )}
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={() => setShowModal(false)}
+        disabled={isSubmitting}
+      >
+        Cancel
+      </Button>
+    </div>
+  </div>
 </div>
 </Modal>
 
