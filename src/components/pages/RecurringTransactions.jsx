@@ -37,7 +37,7 @@ const RecurringTransactions = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  return (
+return (
     <div className="space-y-8">
       <div className="flex items-start justify-between">
         <div>
@@ -45,26 +45,19 @@ const RecurringTransactions = () => {
             Recurring Transactions
           </h1>
           <p className="text-gray-600">
-            Manage your recurring income and expenses like bills, subscriptions, and regular payments
+            View your recurring Transportation and Bills & Utilities transactions
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="md"
-          onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <ApperIcon name="Plus" size={16} />
-          <span className="hidden sm:inline">Add Transaction</span>
-        </Button>
       </div>
 
-      {/* Use TransactionList with recurring filter pre-applied */}
+      {/* Use TransactionList with recurring filter and category filter pre-applied */}
       <div className="recurring-transactions-container">
         <TransactionList 
           refresh={refreshTrigger}
           onEdit={handleEdit}
           initialFilter="recurring"
+          categoryFilter={["Transportation", "Bills & Utilities"]}
+          showFilterTabs={false}
         />
       </div>
 
