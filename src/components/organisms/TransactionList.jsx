@@ -33,6 +33,8 @@ const loadData = async () => {
     try {
       setLoading(true);
       setError("");
+      
+      // Enhanced loading with better error handling
       const transactionPromise = filterType === "recurring" 
         ? transactionService.getRecurringTransactions()
         : transactionService.getAll();
@@ -41,10 +43,24 @@ const loadData = async () => {
         transactionPromise,
         categoryService.getAll()
       ]);
-      setTransactions(transactionData.sort((a, b) => new Date(b.date) - new Date(a.date)));
-      setCategories(categoryData);
+      
+      // Enhanced data processing with null safety
+      const sortedTransactions = (transactionData || []).sort((a, b) => {
+        const dateA = new Date(a.date || 0);
+        const dateB = new Date(b.date || 0);
+        return dateB - dateA;
+      });
+      
+      setTransactions(sortedTransactions);
+      setCategories(categoryData || []);
     } catch (err) {
-      setError("Failed to load transactions");
+      const errorMessage = err.message || "Failed to load transactions";
+      setError(errorMessage);
+      console.error("Transaction loading error:", err);
+      
+      // Set empty arrays on error to prevent undefined issues
+      setTransactions([]);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -73,10 +89,22 @@ const loadData = async () => {
   };
 
 const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = transaction.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (transaction.notes && transaction.notes.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesFilter = filterType === "all" || transaction.type === filterType;
-    const matchesCategory = !categoryFilter || categoryFilter.includes(transaction.category);
+    // Enhanced filtering with null safety
+    const category = transaction.category || '';
+    const notes = transaction.notes || '';
+    const type = transaction.type || '';
+    
+    const matchesSearch = category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (transaction.amount && transaction.amount.toString().includes(searchTerm));
+    
+    const matchesFilter = filterType === "all" || 
+                         (filterType === "recurring" && ["Transportation", "Bills", "Utilities"].includes(category)) ||
+                         type === filterType;
+    
+    const matchesCategory = !categoryFilter || 
+                           (Array.isArray(categoryFilter) ? categoryFilter.includes(category) : categoryFilter === category);
+    
     return matchesSearch && matchesFilter && matchesCategory;
   });
 
@@ -94,19 +122,22 @@ const filteredTransactions = transactions.filter(transaction => {
                 value={searchTerm}
                 onChange={setSearchTerm}
                 placeholder="Search transactions..."
-              />
-            </div>
-{showFilterTabs && (
-              <div className="flex gap-2">
+</div>
+            {showFilterTabs && (
+              <div className="flex gap-2 flex-wrap">
                 {["all", "income", "expense", "recurring"].map(type => (
                   <Button
                     key={type}
                     variant={filterType === type ? "primary" : "ghost"}
                     size="sm"
                     onClick={() => setFilterType(type)}
-                    className="capitalize"
+                    className={`capitalize transition-all duration-200 ${
+                      filterType === type 
+                        ? "bg-primary text-white shadow-md" 
+                        : "hover:bg-gray-100 hover:shadow-sm"
+                    }`}
                   >
-                    {type}
+                    {type === "recurring" ? "Recurring" : type}
                   </Button>
                 ))}
               </div>

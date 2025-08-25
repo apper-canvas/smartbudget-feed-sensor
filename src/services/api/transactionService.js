@@ -28,27 +28,32 @@ async getAll() {
             fieldName: "date_c",
             sorttype: "DESC"
           }
-        ]
+        ],
+        pagingInfo: {
+          limit: 500,
+          offset: 0
+        }
       };
 
       const response = await this.apperClient.fetchRecords(this.tableName, params);
       
       if (!response.success) {
-        console.error(response.message);
+        console.error("Transaction fetch failed:", response.message);
         throw new Error(response.message);
       }
 
-      return response.data.map(transaction => ({
+      // Enhanced data mapping with better validation
+      return (response.data || []).map(transaction => ({
         Id: transaction.Id,
-        amount: transaction.amount_c || 0,
-        type: transaction.type_c,
+        amount: parseFloat(transaction.amount_c) || 0,
+        type: transaction.type_c || 'expense',
         category: transaction.category_c?.Name || transaction.category_c || '',
         date: transaction.date_c,
-        notes: transaction.notes_c,
+        notes: transaction.notes_c || '',
         createdAt: transaction.created_at_c
       }));
     } catch (error) {
-      console.error("Error fetching transactions:", error);
+      console.error("Error fetching transactions:", error?.response?.data?.message || error?.message || error);
       throw error;
     }
   }
@@ -178,9 +183,9 @@ async getAll() {
     }
   }
 
-  async create(transactionData) {
+async create(transactionData) {
     try {
-      // Find category ID by name for lookup field
+      // Enhanced category lookup with better error handling
       let categoryId = null;
       if (transactionData.category) {
         const categoryResponse = await this.apperClient.fetchRecords('category_c', {
@@ -194,19 +199,25 @@ async getAll() {
           ]
         });
         
-        if (categoryResponse.success && categoryResponse.data.length > 0) {
-          categoryId = categoryResponse.data[0].Id;
+        if (categoryResponse.success && categoryResponse.data && categoryResponse.data.length > 0) {
+          categoryId = parseInt(categoryResponse.data[0].Id);
+        } else {
+          console.warn(`Category not found: ${transactionData.category}`);
         }
       }
 
+      // Enhanced data validation and formatting
+      const amount = parseFloat(transactionData.amount) || 0;
+      const transactionName = `${transactionData.type.charAt(0).toUpperCase() + transactionData.type.slice(1)} - ${transactionData.category} - $${amount.toFixed(2)}`;
+      
       const params = {
         records: [{
-          Name: `${transactionData.type} - ${transactionData.category} - $${transactionData.amount}`,
-          amount_c: transactionData.amount,
+          Name: transactionName,
+          amount_c: amount,
           type_c: transactionData.type,
           category_c: categoryId,
           date_c: transactionData.date,
-          notes_c: transactionData.notes,
+          notes_c: transactionData.notes || '',
           created_at_c: new Date().toISOString()
         }]
       };
@@ -214,7 +225,7 @@ async getAll() {
       const response = await this.apperClient.createRecord(this.tableName, params);
       
       if (!response.success) {
-        console.error(response.message);
+        console.error("Transaction creation failed:", response.message);
         throw new Error(response.message);
       }
 
@@ -222,30 +233,42 @@ async getAll() {
         const failedRecords = response.results.filter(result => !result.success);
         if (failedRecords.length > 0) {
           console.error(`Failed to create transactions ${failedRecords.length} records:${JSON.stringify(failedRecords)}`);
-          throw new Error(failedRecords[0].message);
+          const errorMessages = failedRecords.map(record => record.message).join(', ');
+          throw new Error(`Creation failed: ${errorMessages}`);
         }
 
         const successfulRecord = response.results[0];
+        if (!successfulRecord.data) {
+          throw new Error("No data returned from successful creation");
+        }
+
         const newTransaction = successfulRecord.data;
         return {
           Id: newTransaction.Id,
-          amount: newTransaction.amount_c || 0,
+          amount: parseFloat(newTransaction.amount_c) || 0,
           type: newTransaction.type_c,
           category: transactionData.category,
           date: newTransaction.date_c,
-          notes: newTransaction.notes_c,
+          notes: newTransaction.notes_c || '',
           createdAt: newTransaction.created_at_c
         };
       }
+      
+      throw new Error("Unexpected response format from server");
     } catch (error) {
-      console.error("Error creating transaction:", error);
+      console.error("Error creating transaction:", error?.response?.data?.message || error?.message || error);
       throw error;
     }
   }
 
-  async update(id, transactionData) {
+async update(id, transactionData) {
     try {
-      // Find category ID by name for lookup field
+      // Validate input parameters
+      if (!id || !transactionData) {
+        throw new Error("Missing required parameters for transaction update");
+      }
+
+      // Enhanced category lookup with validation
       let categoryId = null;
       if (transactionData.category) {
         const categoryResponse = await this.apperClient.fetchRecords('category_c', {
@@ -259,27 +282,33 @@ async getAll() {
           ]
         });
         
-        if (categoryResponse.success && categoryResponse.data.length > 0) {
-          categoryId = categoryResponse.data[0].Id;
+        if (categoryResponse.success && categoryResponse.data && categoryResponse.data.length > 0) {
+          categoryId = parseInt(categoryResponse.data[0].Id);
+        } else {
+          console.warn(`Category not found for update: ${transactionData.category}`);
         }
       }
+
+      // Enhanced data validation and formatting
+      const amount = parseFloat(transactionData.amount) || 0;
+      const transactionName = `${transactionData.type.charAt(0).toUpperCase() + transactionData.type.slice(1)} - ${transactionData.category} - $${amount.toFixed(2)}`;
 
       const params = {
         records: [{
           Id: parseInt(id),
-          Name: `${transactionData.type} - ${transactionData.category} - $${transactionData.amount}`,
-          amount_c: transactionData.amount,
+          Name: transactionName,
+          amount_c: amount,
           type_c: transactionData.type,
           category_c: categoryId,
           date_c: transactionData.date,
-          notes_c: transactionData.notes
+          notes_c: transactionData.notes || ''
         }]
       };
 
       const response = await this.apperClient.updateRecord(this.tableName, params);
       
       if (!response.success) {
-        console.error(response.message);
+        console.error("Transaction update failed:", response.message);
         throw new Error(response.message);
       }
 
@@ -287,23 +316,30 @@ async getAll() {
         const failedUpdates = response.results.filter(result => !result.success);
         if (failedUpdates.length > 0) {
           console.error(`Failed to update transactions ${failedUpdates.length} records:${JSON.stringify(failedUpdates)}`);
-          throw new Error(failedUpdates[0].message);
+          const errorMessages = failedUpdates.map(record => record.message).join(', ');
+          throw new Error(`Update failed: ${errorMessages}`);
         }
 
         const updatedRecord = response.results[0];
+        if (!updatedRecord.data) {
+          throw new Error("No data returned from successful update");
+        }
+
         const updatedTransaction = updatedRecord.data;
         return {
           Id: updatedTransaction.Id,
-          amount: updatedTransaction.amount_c || 0,
+          amount: parseFloat(updatedTransaction.amount_c) || 0,
           type: updatedTransaction.type_c,
           category: transactionData.category,
           date: updatedTransaction.date_c,
-          notes: updatedTransaction.notes_c,
+          notes: updatedTransaction.notes_c || '',
           createdAt: updatedTransaction.created_at_c
         };
       }
+      
+      throw new Error("Unexpected response format from server");
     } catch (error) {
-      console.error("Error updating transaction:", error);
+      console.error("Error updating transaction:", error?.response?.data?.message || error?.message || error);
       throw error;
     }
   }

@@ -6,13 +6,13 @@ import { goalService } from "@/services/api/goalService";
 import { categoryService } from "@/services/api/categoryService";
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import ApperIcon from "@/components/ApperIcon";
-import Transactions from "@/components/pages/Transactions";
+import StatCard from "@/components/molecules/StatCard";
 import Goals from "@/components/pages/Goals";
+import Transactions from "@/components/pages/Transactions";
 import BudgetCard from "@/components/organisms/BudgetCard";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
 import Loading from "@/components/ui/Loading";
-import StatCard from "@/components/molecules/StatCard";
 
 const Dashboard = () => {
   const [data, setData] = useState({
@@ -55,30 +55,32 @@ const Dashboard = () => {
   const monthStart = startOfMonth(new Date());
   const monthEnd = endOfMonth(new Date());
 
-  // Calculate current month transactions
-  const currentMonthTransactions = data.transactions.filter(t => {
+// Enhanced current month transaction calculations
+  const currentMonthTransactions = (data.transactions || []).filter(t => {
+    if (!t.date) return false;
     const transactionDate = new Date(t.date);
-    return transactionDate >= monthStart && transactionDate <= monthEnd;
+    return transactionDate >= monthStart && transactionDate <= monthEnd && !isNaN(transactionDate);
   });
 
   const monthlyIncome = currentMonthTransactions
     .filter(t => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
 
   const monthlyExpenses = currentMonthTransactions
     .filter(t => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
 
   const monthlyBalance = monthlyIncome - monthlyExpenses;
 
-  // Calculate spending by category for current month
+  // Enhanced spending by category calculation with better handling
   const spendingByCategory = {};
   currentMonthTransactions
-    .filter(t => t.type === "expense")
+    .filter(t => t.type === "expense" && t.category)
     .forEach(t => {
-      spendingByCategory[t.category] = (spendingByCategory[t.category] || 0) + t.amount;
+      const category = t.category;
+      const amount = parseFloat(t.amount) || 0;
+      spendingByCategory[category] = (spendingByCategory[category] || 0) + amount;
     });
-
   // Get current month budget
   const currentBudget = data.budgets.find(b => b.month === currentMonth);
   const totalBudget = currentBudget?.totalLimit || 0;
@@ -102,7 +104,8 @@ const Dashboard = () => {
     .sort((a, b) => b.spent - a.spent)
     .slice(0, 6);
 
-  const recentTransactions = data.transactions
+const recentTransactions = (data.transactions || [])
+    .filter(t => t.date && !isNaN(new Date(t.date)))
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
 
@@ -262,9 +265,9 @@ const Dashboard = () => {
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+<div className="space-y-3">
               {recentTransactions.map(transaction => (
-                <div key={transaction.Id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
+                <div key={transaction.Id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-sm transition-all duration-200">
                   <div className="flex items-center space-x-3">
                     <div className="p-2 bg-gray-100 rounded-lg">
                       <ApperIcon 
@@ -274,16 +277,18 @@ const Dashboard = () => {
                       />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{transaction.category}</p>
+                      <p className="font-medium text-gray-900">{transaction.category || 'Uncategorized'}</p>
                       <p className="text-sm text-gray-600">
-                        {format(new Date(transaction.date), "MMM d")}
+                        {transaction.date ? format(new Date(transaction.date), "MMM d") : 'No date'}
+                        {transaction.notes && ` • ${transaction.notes}`}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className={`font-semibold ${transaction.type === "income" ? "text-success" : "text-error"}`}>
-                      {transaction.type === "income" ? "+" : "-"}${transaction.amount.toFixed(2)}
+                      {transaction.type === "income" ? "+" : "-"}${(parseFloat(transaction.amount) || 0).toFixed(2)}
                     </p>
+                    <p className="text-xs text-gray-500 capitalize">{transaction.type}</p>
                   </div>
                 </div>
               ))}

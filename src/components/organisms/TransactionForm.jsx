@@ -51,38 +51,51 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete, 
 const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Enhanced validation with better user feedback
     if (!formData.amount || !formData.category) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    // Validation notifications
     const amount = parseFloat(formData.amount);
-    if (amount <= 0) {
-      toast.error("Amount must be greater than zero");
+    
+    // Enhanced amount validation
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid amount greater than zero");
       return;
     }
 
     if (amount > 999999) {
-      toast.warn("Large transaction amount detected - please verify");
+      toast.warn("⚠️ Large transaction amount detected - please verify this is correct");
+    }
+
+    // Category validation
+    if (!formData.category.trim()) {
+      toast.error("Please select a category for this transaction");
+      return;
     }
 
     try {
       setIsSubmitting(true);
       const transactionData = {
         ...formData,
-        amount: amount,
-        date: new Date(formData.date).toISOString()
+        amount: Math.round(amount * 100) / 100, // Round to 2 decimal places
+        date: new Date(formData.date).toISOString(),
+        notes: formData.notes.trim()
       };
 
       if (editTransaction) {
         await transactionService.update(editTransaction.Id, transactionData);
-        toast.success(`💰 ${formData.type === 'income' ? 'Income' : 'Expense'} updated successfully!`);
+        const typeIcon = formData.type === 'income' ? '💰' : '💳';
+        toast.success(`${typeIcon} Transaction updated successfully! ${formData.type === 'income' ? '+' : '-'}$${amount.toFixed(2)}`);
         onEditComplete();
       } else {
         await transactionService.create(transactionData);
         const icon = formData.type === 'income' ? '📈' : '💸';
-        toast.success(`${icon} ${formData.type === 'income' ? 'Income' : 'Expense'} of $${amount.toFixed(2)} added!`);
+        const message = `${icon} ${formData.type === 'income' ? 'Income' : 'Expense'} of $${amount.toFixed(2)} recorded in ${formData.category}!`;
+        toast.success(message);
+        
+        // Reset form for new entries
         setFormData({
           amount: "",
           type: "expense",
@@ -94,7 +107,9 @@ const handleSubmit = async (e) => {
       
       onTransactionAdded();
     } catch (error) {
-      toast.error("Failed to save transaction");
+      const errorMessage = error.message || "Failed to save transaction";
+      toast.error(`❌ ${errorMessage}`);
+      console.error("Transaction save error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -222,31 +237,35 @@ const handleCancel = () => {
             <Button
               type="submit"
               variant="primary"
-              disabled={isSubmitting}
-              className="flex-1 flex items-center justify-center gap-2"
+              disabled={isSubmitting || !formData.amount || !formData.category}
+              className="flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
                   <ApperIcon name="Loader2" size={16} className="animate-spin" />
-                  {editTransaction ? "Updating..." : "Adding..."}
+                  <span>{editTransaction ? "Updating..." : "Adding..."}</span>
                 </>
               ) : (
                 <>
-                  <ApperIcon name={editTransaction ? "Save" : "Plus"} size={16} />
-                  {editTransaction ? "Update Transaction" : "Add Transaction"}
+                  <ApperIcon 
+                    name={editTransaction ? "Save" : "Plus"} 
+                    size={16} 
+                    className={`${!formData.amount || !formData.category ? 'opacity-50' : ''}`}
+                  />
+                  <span>{editTransaction ? "Update Transaction" : "Add Transaction"}</span>
                 </>
               )}
             </Button>
 
-<Button
+            <Button
               type="button"
               variant="outline"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-800 transition-all duration-200 hover:shadow-md"
+              className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-800 transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ApperIcon name="X" size={16} />
-              Cancel
+              <span>Cancel</span>
             </Button>
           </div>
         </form>

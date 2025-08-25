@@ -25,45 +25,79 @@ const PieChart = ({ data, title = "Spending by Category" }) => {
     );
   }
 
-  const chartData = {
-    series: data.map(item => item.amount),
+const chartData = {
+    series: data.map(item => parseFloat(item.amount) || 0),
     options: {
       chart: {
         type: 'pie',
-        height: 350
+        height: 350,
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800
+        }
       },
-      labels: data.map(item => item.category),
+      labels: data.map(item => item.category || 'Unknown'),
       colors: ['#2563EB', '#7C3AED', '#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6', '#06B6D4'],
       legend: {
         position: 'bottom',
         fontSize: '14px',
-        fontFamily: 'Inter, ui-sans-serif, system-ui'
+        fontFamily: 'Inter, ui-sans-serif, system-ui',
+        markers: {
+          width: 12,
+          height: 12,
+          radius: 6
+        }
       },
       dataLabels: {
         enabled: true,
-        formatter: function (val) {
-          return val.toFixed(1) + "%";
+        formatter: function (val, opts) {
+          const value = opts.w.config.series[opts.seriesIndex];
+          return val > 5 ? val.toFixed(1) + "%" : "";
         },
         style: {
           fontSize: '12px',
           fontFamily: 'Inter, ui-sans-serif, system-ui',
-          fontWeight: '600'
+          fontWeight: '600',
+          colors: ['#ffffff']
+        },
+        dropShadow: {
+          enabled: true,
+          blur: 3,
+          opacity: 0.8
         }
       },
       plotOptions: {
         pie: {
           donut: {
             size: '0%'
-          }
+          },
+          expandOnClick: true
         }
       },
       tooltip: {
+        enabled: true,
         y: {
           formatter: function (val) {
-            return "$" + val.toFixed(2);
+            return "$" + (parseFloat(val) || 0).toFixed(2);
+          }
+        },
+        style: {
+          fontSize: '12px',
+          fontFamily: 'Inter, ui-sans-serif, system-ui'
+        }
+      },
+      responsive: [{
+        breakpoint: 480,
+        options: {
+          chart: {
+            height: 300
+          },
+          legend: {
+            fontSize: '12px'
           }
         }
-      }
+      }]
     }
   };
 
