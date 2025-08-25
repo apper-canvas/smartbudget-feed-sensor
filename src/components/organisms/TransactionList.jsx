@@ -98,8 +98,9 @@ const filteredTransactions = transactions.filter(transaction => {
                          notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (transaction.amount && transaction.amount.toString().includes(searchTerm));
     
+    // Enhanced recurring filter to show only expense transactions with specific categories
     const matchesFilter = filterType === "all" || 
-                         (filterType === "recurring" && ["Transportation", "Bills", "Utilities"].includes(category)) ||
+                         (filterType === "recurring" && type === "expense" && ["Transportation", "Bills & Utilities"].includes(category)) ||
                          type === filterType;
     
     const matchesCategory = !categoryFilter || 
