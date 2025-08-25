@@ -13,15 +13,19 @@ import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
 import Loading from "@/components/ui/Loading";
 
-const TransactionList = ({ refresh, onEdit }) => {
+const TransactionList = ({ refresh, onEdit, initialFilter = "all" }) => {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-const [filterType, setFilterType] = useState("all");
+  const [filterType, setFilterType] = useState(initialFilter);
 
-useEffect(() => {
+  useEffect(() => {
+    setFilterType(initialFilter);
+  }, [initialFilter]);
+
+  useEffect(() => {
     loadData();
   }, [refresh, filterType]);
 

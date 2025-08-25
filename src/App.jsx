@@ -8,6 +8,7 @@ import { setUser, clearUser } from '@/store/userSlice';
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastContainer } from "react-toastify";
 import Transactions from "@/components/pages/Transactions";
+import RecurringTransactions from "@/components/pages/RecurringTransactions";
 import Budgets from "@/components/pages/Budgets";
 import Accounts from "@/components/pages/Accounts";
 import Goals from "@/components/pages/Goals";
@@ -174,8 +175,9 @@ function AppContent() {
                   <Route path="/error" element={<ErrorPage />} />
                   <Route path="/prompt-password/:appId/:emailAddress/:provider" element={<PromptPassword />} />
                   <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
-                  <Route path="/" element={<Dashboard />} />
+<Route path="/" element={<Dashboard />} />
                   <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/recurring-transactions" element={<RecurringTransactions />} />
                   <Route path="/budgets" element={<Budgets />} />
                   <Route path="/goals" element={<Goals />} />
                   <Route path="/charts" element={<Charts />} />
