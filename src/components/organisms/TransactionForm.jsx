@@ -243,7 +243,7 @@ const handleCancel = () => {
               variant="outline"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className="flex items-center gap-2 hover:bg-gray-50 border-gray-300 text-gray-700 hover:border-gray-400 transition-colors"
+              className="flex items-center gap-2 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 border-gray-300 text-gray-700 hover:border-gray-400 hover:text-gray-800 transition-all duration-200 hover:shadow-md"
             >
               <ApperIcon name="X" size={16} />
               Cancel
