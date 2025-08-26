@@ -50,13 +50,12 @@ return (
         </div>
       </div>
 
-      {/* Use TransactionList with recurring filter and category filter pre-applied */}
+{/* Use TransactionList with recurring filter pre-applied */}
       <div className="recurring-transactions-container">
         <TransactionList 
           refresh={refreshTrigger}
           onEdit={handleEdit}
           initialFilter="recurring"
-          categoryFilter={["Transportation", "Bills & Utilities"]}
           showFilterTabs={false}
         />
       </div>
