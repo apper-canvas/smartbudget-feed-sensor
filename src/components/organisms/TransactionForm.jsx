@@ -9,12 +9,14 @@ import Input from "@/components/atoms/Input";
 import Select from "@/components/atoms/Select";
 
 const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete, onCancel }) => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     amount: "",
     type: "expense",
     category: "",
     date: new Date().toISOString().split('T')[0],
-    notes: ""
+    notes: "",
+    isRecurring: false,
+    recurrencePattern: ""
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,13 +27,15 @@ const TransactionForm = ({ onTransactionAdded, editTransaction, onEditComplete, 
   }, []);
 
   useEffect(() => {
-    if (editTransaction) {
+if (editTransaction) {
       setFormData({
         amount: editTransaction.amount.toString(),
         type: editTransaction.type,
         category: editTransaction.category,
         date: new Date(editTransaction.date).toISOString().split('T')[0],
-        notes: editTransaction.notes || ""
+        notes: editTransaction.notes || "",
+        isRecurring: editTransaction.isRecurring || false,
+        recurrencePattern: editTransaction.recurrencePattern || ""
       });
     }
   }, [editTransaction]);
@@ -75,33 +79,43 @@ const handleSubmit = async (e) => {
       return;
     }
 
+    // Recurring transaction validation
+    if (formData.isRecurring && !formData.recurrencePattern.trim()) {
+      toast.error("Please specify a recurrence pattern for recurring transactions");
+      return;
+    }
     try {
       setIsSubmitting(true);
-      const transactionData = {
+const transactionData = {
         ...formData,
         amount: Math.round(amount * 100) / 100, // Round to 2 decimal places
         date: new Date(formData.date).toISOString(),
-        notes: formData.notes.trim()
+        notes: formData.notes.trim(),
+        isRecurring: formData.isRecurring,
+        recurrencePattern: formData.isRecurring ? formData.recurrencePattern.trim() : ""
       };
-
       if (editTransaction) {
-        await transactionService.update(editTransaction.Id, transactionData);
+await transactionService.update(editTransaction.Id, transactionData);
         const typeIcon = formData.type === 'income' ? '💰' : '💳';
-        toast.success(`${typeIcon} Transaction updated successfully! ${formData.type === 'income' ? '+' : '-'}$${amount.toFixed(2)}`);
+        const recurringIcon = formData.isRecurring ? '🔄' : '';
+        toast.success(`${typeIcon}${recurringIcon} ${formData.isRecurring ? 'Recurring ' : ''}Transaction updated successfully! ${formData.type === 'income' ? '+' : '-'}$${amount.toFixed(2)}`);
         onEditComplete();
       } else {
         await transactionService.create(transactionData);
         const icon = formData.type === 'income' ? '📈' : '💸';
-        const message = `${icon} ${formData.type === 'income' ? 'Income' : 'Expense'} of $${amount.toFixed(2)} recorded in ${formData.category}!`;
+        const recurringIcon = formData.isRecurring ? '🔄' : '';
+        const message = `${icon}${recurringIcon} ${formData.isRecurring ? 'Recurring ' : ''}${formData.type === 'income' ? 'Income' : 'Expense'} of $${amount.toFixed(2)} recorded in ${formData.category}!`;
         toast.success(message);
         
         // Reset form for new entries
-        setFormData({
+setFormData({
           amount: "",
           type: "expense",
           category: "",
           date: new Date().toISOString().split('T')[0],
-          notes: ""
+          notes: "",
+          isRecurring: false,
+          recurrencePattern: ""
         });
       }
       
@@ -120,12 +134,14 @@ const handleCancel = () => {
       onEditComplete();
     } else {
       // Reset form to initial state
-      setFormData({
+setFormData({
         amount: "",
         type: "expense",
         category: "",
         date: new Date().toISOString().split('T')[0],
-        notes: ""
+        notes: "",
+        isRecurring: false,
+        recurrencePattern: ""
       });
       // Close modal using dedicated cancel handler
       if (onCancel) {
@@ -225,7 +241,7 @@ const handleCancel = () => {
             required
           />
 
-          <Input
+<Input
             type="text"
             label="Notes (Optional)"
             placeholder="Add a note..."
@@ -233,6 +249,39 @@ const handleCancel = () => {
             onChange={(e) => handleInputChange("notes", e.target.value)}
           />
 
+          {/* Recurring Transaction Fields */}
+          <div className="space-y-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <ApperIcon name="Repeat" size={16} className="text-blue-600" />
+              </div>
+              <h3 className="font-medium text-gray-900">Recurring Transaction</h3>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="isRecurring"
+                checked={formData.isRecurring}
+                onChange={(e) => handleInputChange("isRecurring", e.target.checked)}
+                className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
+              />
+              <label htmlFor="isRecurring" className="text-sm font-medium text-gray-700">
+                Make this a recurring transaction
+              </label>
+            </div>
+
+            {formData.isRecurring && (
+              <Input
+                type="text"
+                label="Recurrence Pattern"
+                placeholder="e.g., Weekly, Monthly, Every 2 weeks, etc."
+                value={formData.recurrencePattern}
+                onChange={(e) => handleInputChange("recurrencePattern", e.target.value)}
+                required={formData.isRecurring}
+              />
+            )}
+          </div>
 <div className="flex gap-3 pt-4">
             <Button
               type="submit"

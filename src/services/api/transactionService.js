@@ -18,6 +18,8 @@ async getAll() {
           { field: { Name: "date_c" } },
           { field: { Name: "notes_c" } },
           { field: { Name: "created_at_c" } },
+          { field: { Name: "is_recurring_c" } },
+          { field: { Name: "recurrence_pattern_c" } },
           { 
             field: { Name: "category_c" },
             referenceField: { field: { Name: "Name" } }
@@ -43,6 +45,7 @@ async getAll() {
       }
 
       // Enhanced data mapping with better validation
+// Enhanced data mapping with better validation
       return (response.data || []).map(transaction => ({
         Id: transaction.Id,
         amount: parseFloat(transaction.amount_c) || 0,
@@ -50,7 +53,9 @@ async getAll() {
         category: transaction.category_c?.Name || transaction.category_c || '',
         date: transaction.date_c,
         notes: transaction.notes_c || '',
-        createdAt: transaction.created_at_c
+        createdAt: transaction.created_at_c,
+        isRecurring: transaction.is_recurring_c || false,
+        recurrencePattern: transaction.recurrence_pattern_c || ''
       }));
     } catch (error) {
       console.error("Error fetching transactions:", error?.response?.data?.message || error?.message || error);
@@ -61,13 +66,15 @@ async getAll() {
   async getRecurringTransactions() {
     try {
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "amount_c" } },
           { field: { Name: "type_c" } },
           { field: { Name: "date_c" } },
           { field: { Name: "notes_c" } },
           { field: { Name: "created_at_c" } },
+          { field: { Name: "is_recurring_c" } },
+          { field: { Name: "recurrence_pattern_c" } },
           { 
             field: { Name: "category_c" },
             referenceField: { field: { Name: "Name" } }
@@ -128,14 +135,16 @@ async getAll() {
         throw new Error(response.message);
       }
 
-      return response.data.map(transaction => ({
+return response.data.map(transaction => ({
         Id: transaction.Id,
         amount: transaction.amount_c || 0,
         type: transaction.type_c,
         category: transaction.category_c?.Name || transaction.category_c || '',
         date: transaction.date_c,
         notes: transaction.notes_c,
-        createdAt: transaction.created_at_c
+        createdAt: transaction.created_at_c,
+        isRecurring: transaction.is_recurring_c || false,
+        recurrencePattern: transaction.recurrence_pattern_c || ''
       }));
     } catch (error) {
       console.error("Error fetching recurring transactions:", error);
@@ -146,13 +155,15 @@ async getAll() {
   async getById(id) {
     try {
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "amount_c" } },
           { field: { Name: "type_c" } },
           { field: { Name: "date_c" } },
           { field: { Name: "notes_c" } },
           { field: { Name: "created_at_c" } },
+          { field: { Name: "is_recurring_c" } },
+          { field: { Name: "recurrence_pattern_c" } },
           { 
             field: { Name: "category_c" },
             referenceField: { field: { Name: "Name" } }
@@ -168,14 +179,16 @@ async getAll() {
       }
 
       const transaction = response.data;
-      return {
+return {
         Id: transaction.Id,
         amount: transaction.amount_c || 0,
         type: transaction.type_c,
         category: transaction.category_c?.Name || transaction.category_c || '',
         date: transaction.date_c,
         notes: transaction.notes_c,
-        createdAt: transaction.created_at_c
+        createdAt: transaction.created_at_c,
+        isRecurring: transaction.is_recurring_c || false,
+        recurrencePattern: transaction.recurrence_pattern_c || ''
       };
     } catch (error) {
       console.error(`Error fetching transaction with ID ${id}:`, error);
@@ -211,14 +224,16 @@ async create(transactionData) {
       const transactionName = `${transactionData.type.charAt(0).toUpperCase() + transactionData.type.slice(1)} - ${transactionData.category} - $${amount.toFixed(2)}`;
       
       const params = {
-        records: [{
+records: [{
           Name: transactionName,
           amount_c: amount,
           type_c: transactionData.type,
           category_c: categoryId,
           date_c: transactionData.date,
           notes_c: transactionData.notes || '',
-          created_at_c: new Date().toISOString()
+          created_at_c: new Date().toISOString(),
+          is_recurring_c: transactionData.isRecurring || false,
+          recurrence_pattern_c: transactionData.recurrencePattern || ''
         }]
       };
 
@@ -243,14 +258,16 @@ async create(transactionData) {
         }
 
         const newTransaction = successfulRecord.data;
-        return {
+return {
           Id: newTransaction.Id,
           amount: parseFloat(newTransaction.amount_c) || 0,
           type: newTransaction.type_c,
           category: transactionData.category,
           date: newTransaction.date_c,
           notes: newTransaction.notes_c || '',
-          createdAt: newTransaction.created_at_c
+          createdAt: newTransaction.created_at_c,
+          isRecurring: newTransaction.is_recurring_c || false,
+          recurrencePattern: newTransaction.recurrence_pattern_c || ''
         };
       }
       
@@ -294,14 +311,16 @@ async update(id, transactionData) {
       const transactionName = `${transactionData.type.charAt(0).toUpperCase() + transactionData.type.slice(1)} - ${transactionData.category} - $${amount.toFixed(2)}`;
 
       const params = {
-        records: [{
+records: [{
           Id: parseInt(id),
           Name: transactionName,
           amount_c: amount,
           type_c: transactionData.type,
           category_c: categoryId,
           date_c: transactionData.date,
-          notes_c: transactionData.notes || ''
+          notes_c: transactionData.notes || '',
+          is_recurring_c: transactionData.isRecurring || false,
+          recurrence_pattern_c: transactionData.recurrencePattern || ''
         }]
       };
 
@@ -326,14 +345,16 @@ async update(id, transactionData) {
         }
 
         const updatedTransaction = updatedRecord.data;
-        return {
+return {
           Id: updatedTransaction.Id,
           amount: parseFloat(updatedTransaction.amount_c) || 0,
           type: updatedTransaction.type_c,
           category: transactionData.category,
           date: updatedTransaction.date_c,
           notes: updatedTransaction.notes_c || '',
-          createdAt: updatedTransaction.created_at_c
+          createdAt: updatedTransaction.created_at_c,
+          isRecurring: updatedTransaction.is_recurring_c || false,
+          recurrencePattern: updatedTransaction.recurrence_pattern_c || ''
         };
       }
       

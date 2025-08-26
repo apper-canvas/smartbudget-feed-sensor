@@ -8,7 +8,6 @@ import SearchBar from "@/components/molecules/SearchBar";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import Badge from "@/components/atoms/Badge";
-import Transactions from "@/components/pages/Transactions";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
 import Loading from "@/components/ui/Loading";
@@ -43,8 +42,7 @@ const loadData = async () => {
         transactionPromise,
         categoryService.getAll()
       ]);
-      
-      // Enhanced data processing with null safety
+// Enhanced data processing with null safety
       const sortedTransactions = (transactionData || []).sort((a, b) => {
         const dateA = new Date(a.date || 0);
         const dateB = new Date(b.date || 0);
@@ -52,6 +50,7 @@ const loadData = async () => {
       });
       
       setTransactions(sortedTransactions);
+      setCategories(categoryData || []);
       setCategories(categoryData || []);
     } catch (err) {
       const errorMessage = err.message || "Failed to load transactions";
@@ -187,7 +186,7 @@ const filteredTransactions = transactions.filter(transaction => {
                       />
                     </div>
                     
-                    <div>
+<div>
                       <div className="flex items-center space-x-2">
                         <h3 className="font-medium text-gray-900">{transaction.category}</h3>
                         <Badge 
@@ -196,10 +195,23 @@ const filteredTransactions = transactions.filter(transaction => {
                         >
                           {transaction.type}
                         </Badge>
+                        {transaction.isRecurring && (
+                          <Badge 
+                            variant="info"
+                            size="sm"
+                            className="bg-blue-100 text-blue-800 border-blue-200"
+                          >
+                            <ApperIcon name="Repeat" size={12} className="mr-1" />
+                            Recurring
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-gray-600">
                         {format(new Date(transaction.date), "MMM d, yyyy")}
                         {transaction.notes && ` • ${transaction.notes}`}
+                        {transaction.isRecurring && transaction.recurrencePattern && 
+                          ` • ${transaction.recurrencePattern}`
+                        }
                       </p>
                     </div>
                   </div>
