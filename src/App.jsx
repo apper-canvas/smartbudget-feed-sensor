@@ -10,6 +10,7 @@ import { ToastContainer } from "react-toastify";
 import Transactions from "@/components/pages/Transactions";
 import RecurringTransactions from "@/components/pages/RecurringTransactions";
 import Budgets from "@/components/pages/Budgets";
+import Todos from "@/components/pages/Todos";
 import Accounts from "@/components/pages/Accounts";
 import Goals from "@/components/pages/Goals";
 import Dashboard from "@/components/pages/Dashboard";
@@ -176,6 +177,7 @@ function AppContent() {
                   <Route path="/prompt-password/:appId/:emailAddress/:provider" element={<PromptPassword />} />
                   <Route path="/reset-password/:appId/:fields" element={<ResetPassword />} />
 <Route path="/" element={<Dashboard />} />
+<Route path="/todos" element={<Todos />} />
                   <Route path="/transactions" element={<Transactions />} />
                   <Route path="/recurring-transactions" element={<RecurringTransactions />} />
                   <Route path="/budgets" element={<Budgets />} />

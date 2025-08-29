@@ -11,6 +11,7 @@ const menuItems = [
     { path: "/accounts", icon: "CreditCard", label: "Accounts" },
     { path: "/budgets", icon: "PiggyBank", label: "Budgets" },
     { path: "/goals", icon: "Target", label: "Goals" },
+    { path: "/todos", icon: "List", label: "Todos" },
     { path: "/charts", icon: "BarChart3", label: "Charts" },
     { path: "/settings", icon: "Settings", label: "Settings" }
   ];
