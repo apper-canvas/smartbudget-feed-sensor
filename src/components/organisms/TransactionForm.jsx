@@ -13,6 +13,7 @@ const [formData, setFormData] = useState({
     amount: "",
     type: "expense",
     category: "",
+    title: "",
     date: new Date().toISOString().split('T')[0],
     notes: "",
     isRecurring: false,
@@ -28,10 +29,11 @@ const [formData, setFormData] = useState({
 
   useEffect(() => {
 if (editTransaction) {
-      setFormData({
+setFormData({
         amount: editTransaction.amount.toString(),
         type: editTransaction.type,
         category: editTransaction.category,
+        title: editTransaction.title_c || "",
         date: new Date(editTransaction.date).toISOString().split('T')[0],
         notes: editTransaction.notes || "",
         isRecurring: editTransaction.isRecurring || false,
@@ -56,7 +58,7 @@ const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Enhanced validation with better user feedback
-    if (!formData.amount || !formData.category) {
+if (!formData.amount || !formData.category || !formData.title) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -89,6 +91,7 @@ const handleSubmit = async (e) => {
 const transactionData = {
         ...formData,
         amount: Math.round(amount * 100) / 100, // Round to 2 decimal places
+        title_c: formData.title.trim(),
         date: new Date(formData.date).toISOString(),
         notes: formData.notes.trim(),
         isRecurring: formData.isRecurring,
@@ -112,6 +115,7 @@ setFormData({
           amount: "",
           type: "expense",
           category: "",
+          title: "",
           date: new Date().toISOString().split('T')[0],
           notes: "",
           isRecurring: false,
@@ -138,6 +142,7 @@ setFormData({
         amount: "",
         type: "expense",
         category: "",
+        title: "",
         date: new Date().toISOString().split('T')[0],
         notes: "",
         isRecurring: false,
@@ -205,7 +210,7 @@ setFormData({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               type="number"
               label="Amount"
@@ -217,6 +222,17 @@ setFormData({
               required
             />
 
+            <Input
+              type="text"
+              label="Title"
+              placeholder="Transaction title"
+              value={formData.title}
+              onChange={(e) => handleInputChange("title", e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select
               label="Category"
               value={formData.category}
@@ -286,7 +302,7 @@ setFormData({
             <Button
               type="submit"
               variant="primary"
-              disabled={isSubmitting || !formData.amount || !formData.category}
+disabled={isSubmitting || !formData.amount || !formData.category || !formData.title}
               className="flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
@@ -298,8 +314,8 @@ setFormData({
                 <>
                   <ApperIcon 
                     name={editTransaction ? "Save" : "Plus"} 
-                    size={16} 
-                    className={`${!formData.amount || !formData.category ? 'opacity-50' : ''}`}
+size={16} 
+                    className={`${!formData.amount || !formData.category || !formData.title ? 'opacity-50' : ''}`}
                   />
                   <span>{editTransaction ? "Update Transaction" : "Add Transaction"}</span>
                 </>
