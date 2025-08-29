@@ -228,10 +228,10 @@ async create(transactionData) {
       // Enhanced data validation and formatting
       const amount = parseFloat(transactionData.amount) || 0;
       const transactionName = `${transactionData.type.charAt(0).toUpperCase() + transactionData.type.slice(1)} - ${transactionData.category} - $${amount.toFixed(2)}`;
-      
-      const params = {
-records: [{
+const params = {
+        records: [{
           Name: transactionName,
+          title_c: transactionData.title_c,
           amount_c: amount,
           type_c: transactionData.type,
           category_c: categoryId,
@@ -317,9 +317,11 @@ async update(id, transactionData) {
       const amount = parseFloat(transactionData.amount) || 0;
       const transactionName = `${transactionData.type.charAt(0).toUpperCase() + transactionData.type.slice(1)} - ${transactionData.category} - $${amount.toFixed(2)}`;
 
-      const params = {
-records: [{
+const params = {
+        records: [{
           Id: parseInt(id),
+          Name: transactionName,
+          title_c: transactionData.title_c,
           Name: transactionName,
           amount_c: amount,
           type_c: transactionData.type,
