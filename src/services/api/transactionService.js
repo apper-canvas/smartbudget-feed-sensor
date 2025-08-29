@@ -12,6 +12,7 @@ async getAll() {
     try {
       const params = {
         fields: [
+{ field: { Name: "title_c" } },
           { field: { Name: "Name" } },
           { field: { Name: "amount_c" } },
           { field: { Name: "type_c" } },
@@ -46,8 +47,9 @@ async getAll() {
 
       // Enhanced data mapping with better validation
 // Enhanced data mapping with better validation
-      return (response.data || []).map(transaction => ({
+return (response.data || []).map(transaction => ({
         Id: transaction.Id,
+        title: transaction.title_c || '',
         amount: parseFloat(transaction.amount_c) || 0,
         type: transaction.type_c || 'expense',
         category: transaction.category_c?.Name || transaction.category_c || '',
@@ -67,6 +69,7 @@ async getAll() {
     try {
       const params = {
 fields: [
+          { field: { Name: "title_c" } },
           { field: { Name: "Name" } },
           { field: { Name: "amount_c" } },
           { field: { Name: "type_c" } },
@@ -137,6 +140,7 @@ fields: [
 
 return response.data.map(transaction => ({
         Id: transaction.Id,
+        title: transaction.title_c || '',
         amount: transaction.amount_c || 0,
         type: transaction.type_c,
         category: transaction.category_c?.Name || transaction.category_c || '',
@@ -156,6 +160,7 @@ return response.data.map(transaction => ({
     try {
       const params = {
 fields: [
+          { field: { Name: "title_c" } },
           { field: { Name: "Name" } },
           { field: { Name: "amount_c" } },
           { field: { Name: "type_c" } },
@@ -181,6 +186,7 @@ fields: [
       const transaction = response.data;
 return {
         Id: transaction.Id,
+        title: transaction.title_c || '',
         amount: transaction.amount_c || 0,
         type: transaction.type_c,
         category: transaction.category_c?.Name || transaction.category_c || '',
@@ -260,6 +266,7 @@ records: [{
         const newTransaction = successfulRecord.data;
 return {
           Id: newTransaction.Id,
+          title: newTransaction.title_c || '',
           amount: parseFloat(newTransaction.amount_c) || 0,
           type: newTransaction.type_c,
           category: transactionData.category,
@@ -347,6 +354,7 @@ records: [{
         const updatedTransaction = updatedRecord.data;
 return {
           Id: updatedTransaction.Id,
+          title: updatedTransaction.title_c || '',
           amount: parseFloat(updatedTransaction.amount_c) || 0,
           type: updatedTransaction.type_c,
           category: transactionData.category,

@@ -88,13 +88,15 @@ const loadData = async () => {
   };
 
 const filteredTransactions = transactions.filter(transaction => {
-    // Enhanced filtering with null safety
+// Enhanced filtering with null safety
     const category = transaction.category || '';
     const notes = transaction.notes || '';
+    const title = transaction.title || '';
     const type = transaction.type || '';
     
     const matchesSearch = category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (transaction.amount && transaction.amount.toString().includes(searchTerm));
     
     // Enhanced recurring filter to show only expense transactions with specific categories
@@ -187,8 +189,8 @@ const filteredTransactions = transactions.filter(transaction => {
                     </div>
                     
 <div>
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-medium text-gray-900">{transaction.category}</h3>
+<div className="flex items-center space-x-2">
+                        <h3 className="font-medium text-gray-900">{transaction.title || transaction.category}</h3>
                         <Badge 
                           variant={transaction.type === "income" ? "success" : "error"}
                           size="sm"
@@ -207,7 +209,8 @@ const filteredTransactions = transactions.filter(transaction => {
                         )}
                       </div>
                       <p className="text-sm text-gray-600">
-                        {format(new Date(transaction.date), "MMM d, yyyy")}
+{format(new Date(transaction.date), "MMM d, yyyy")}
+                        {transaction.title && transaction.title !== transaction.category && ` • ${transaction.title}`}
                         {transaction.notes && ` • ${transaction.notes}`}
                         {transaction.isRecurring && transaction.recurrencePattern && 
                           ` • ${transaction.recurrencePattern}`
